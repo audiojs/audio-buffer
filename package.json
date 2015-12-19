@@ -26,12 +26,11 @@
   },
   "homepage": "https://github.com/audio-lab/buffer",
   "dependencies": {
-    "audio-context": "^0.1.0",
     "inherits": "^2.0.1",
     "is-buffer": "^1.1.0",
     "isndarray": "^1.0.0",
     "ndarray": "^1.0.18",
-    "pcm-util": "^1.2.0",
+    "pcm-util": "^1.2.2",
     "xtend": "^4.0.1"
   },
   "devDependencies": {

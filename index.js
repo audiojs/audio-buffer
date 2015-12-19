@@ -32,7 +32,7 @@ function AudioBuffer (buffer, format) {
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(buffer, format);
 
 	//obtain format from the passed object
-	//TODO: this is a potential slowdowner, think about using ids
+	//TODO: this is a potential slowdowner, think about using format IDs
 	this.format = pcm.getFormat(format);
 
 	//if other audio buffer passed - create audio buffer with different format
@@ -95,49 +95,6 @@ function AudioBuffer (buffer, format) {
 
 	//use ndarray as inner data storage
 	this.data = new NDArray(data, [this.channels, this.length], this.interleaved ? [1, this.channels] : [this.length, 1]);
-};
-
-
-/**
- * N-dimensional unmergeable planar data access wrapper.
- * Like for WAA AudioBuffer, where channels data isn’t mergeable and isn’t deinterleaveable.
- *
- * @constructor
- */
-function NDData (data) {
-	this.data = data;
-	this.length = data[0].length;
-}
-NDData.prototype.get = function (channel, offset) {
-	return this.data[channel, offset];
-};
-NDData.prototype.set = function (channel, offset, value) {
-	this.data[channel, offset] = value;
-};
-
-
-/**
- * Typed buffer access data wrapper.
- * Because ndarrays can’t handle typed buffers.
- *
- * @constructor
- */
-function BufferData (buffer, format) {
-	this.data = buffer;
-
-	//take some format values
-	this.readMethodName = format.readMethodName;
-	this.writeMethodName = format.writeMethodName;
-	this.sampleSize = format.sampleSize;
-
-	this.length = Math.floor(buffer.length / format.sampleSize);
-};
-BufferData.prototype.get = function (idx) {
-	// var offset = pcm.getOffset(channel, idx, this, this.length);
-	return this.data[this.readMethodName](idx * this.sampleSize);
-};
-BufferData.prototype.set = function (idx, value) {
-	return this.data[this.writeMethodName](value, idx * this.sampleSize);
 };
 
 
@@ -362,3 +319,51 @@ AudioBuffer.prototype.valueOf = function () {
 	return result;
 }
 
+
+
+
+/**
+ * N-dimensional unmergeable planar data access wrapper.
+ * Like for WAA AudioBuffer, where channels data isn’t mergeable and isn’t deinterleaveable.
+ *
+ * @constructor
+ */
+function NDData (data) {
+	this.data = data;
+	this.length = data[0].length;
+}
+NDData.prototype.get = function (idx) {
+	var offset = idx % this.length;
+	var channel = Math.floor(idx / this.length);
+	return this.data[channel, offset];
+};
+NDData.prototype.set = function (idx, value) {
+	var offset = idx % this.length;
+	var channel = Math.floor(idx / this.length);
+	this.data[channel, offset] = value;
+};
+
+
+/**
+ * Typed buffer access data wrapper.
+ * Because ndarrays can’t handle typed buffers.
+ *
+ * @constructor
+ */
+function BufferData (buffer, format) {
+	this.data = buffer;
+
+	//take some format values
+	this.readMethodName = format.readMethodName;
+	this.writeMethodName = format.writeMethodName;
+	this.sampleSize = format.sampleSize;
+
+	this.length = Math.floor(buffer.length / format.sampleSize);
+};
+BufferData.prototype.get = function (idx) {
+	// var offset = pcm.getOffset(channel, idx, this, this.length);
+	return this.data[this.readMethodName](idx * this.sampleSize);
+};
+BufferData.prototype.set = function (idx, value) {
+	return this.data[this.writeMethodName](value, idx * this.sampleSize);
+};

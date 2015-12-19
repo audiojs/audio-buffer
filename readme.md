@@ -14,7 +14,7 @@ var buffer = new AudioBuffer([0,0,1,1], {channels: 2});
 ## API
 
 ```js
-//create audio buffer from any type of data source. Pass format as a second argument
+//create audio buffer from any type of data source. Pass format as a second argument.
 var buffer = new AudioBuffer(data, format);
 
 //NDarray with the data
@@ -36,6 +36,15 @@ buffer.sampleRate;
 //Number of channels
 buffer.channels;
 buffer.numberOfChannels;
+
+//Get sample value
+buffer.get(channel, index);
+
+//Set sample value
+buffer.set(channel, index, value);
+
+//Get array containing the data for the channel
+buffer.getChannelData(channel);
 ```
 
 ## Audio methods
