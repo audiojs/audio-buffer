@@ -58,6 +58,25 @@ describe('Creation', function () {
 });
 
 
+describe('Accessors', function () {
+	it('get/set', function () {
+		var buffer = new AudioBuffer(Array(4));
+
+		assert.equal(buffer.get(1, 1), 0);
+
+		buffer.set(0, 0, 1);
+		buffer.set(1, 0, -1);
+		buffer.set(0, 1, 1);
+		buffer.set(1, 1, -1);
+
+		assert.equal(buffer.get(0, 0), 1);
+		assert.equal(buffer.get(1, 0), -1);
+		assert.equal(buffer.get(0, 1), 1);
+		assert.equal(buffer.get(1, 1), -1);
+	});
+});
+
+
 describe('Array methods', function () {
 
 });

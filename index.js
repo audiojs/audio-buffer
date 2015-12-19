@@ -32,6 +32,7 @@ function AudioBuffer (buffer, format) {
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(buffer, format);
 
 	//obtain format from the passed object
+	//TODO: this is a potential slowdowner, think about using ids
 	this.format = pcm.getFormat(format);
 
 	//if other audio buffer passed - create audio buffer with different format
@@ -144,10 +145,10 @@ BufferData.prototype.set = function (idx, value) {
  * Get/set methods - synonyms to NDArray’s ones
  */
 AudioBuffer.prototype.get = function (channel, offset) {
-	return this.data.get(channel, offset);
+	return this.data.get(channel, offset) || 0;
 };
 AudioBuffer.prototype.set = function (channel, offset, value) {
-	return this.data.set(channel, offset, value);
+	return this.data.set(channel, offset, value || 0);
 };
 
 
