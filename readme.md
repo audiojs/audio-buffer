@@ -1,4 +1,4 @@
-Audio buffer interface for any audio data: `AudioBuffer`, `Buffer`, `TypedArray`, `Array`, `NDarray` or any `Object` with get/set methods. Fully compatible with ndarrays, so any [ndarray modules](https://github.com/scijs/ndarray/wiki/ndarray-module-list#core-module) can be used over audio buffers. It is designed to provide wrapper audio methods for the underlying data storage, so the data is kept untouched.
+Audio buffer is a class to work with audio data. It provides a thin wrapper with a bunch of audio methods for any audio data source — `AudioBuffer`, `Buffer`, `TypedArray`, `Array`, `NDarray` or any `Object` with get/set methods. It stores data as an ndarray, so any [ndarray packages](https://github.com/scijs/ndarray/wiki/ndarray-module-list#core-module) can be used over audio buffers.
 
 ## Usage
 
@@ -14,8 +14,12 @@ var buffer = new AudioBuffer([0,0,1,1], {channels: 2});
 ## API
 
 ```js
-//create audio buffer from any type of data source. Pass format as a second argument.
+//Create audio buffer from data source. Pass audio data format as a second argument.
+//Format only affects the way to access raw data, it can be changed at any time.
 var buffer = new AudioBuffer(data, format);
+
+//Format of data
+buffer.format;
 
 //NDarray with the data
 buffer.data;
@@ -37,23 +41,18 @@ buffer.sampleRate;
 buffer.channels;
 buffer.numberOfChannels;
 
-//Get sample value
+//Get sample value -1..1, regardless of data format
 buffer.get(channel, index);
 
-//Set sample value
+//Set sample value, -1..1 regardless of data format
 buffer.set(channel, index, value);
 
 //Get array containing the data for the channel
 buffer.getChannelData(channel);
 ```
 
-## Audio methods
-
-## Array methods
-
-## Ndarray methods
-
 ## Related
 
+> [pcm-util](https://npmjs.org/package/pcm-util) — utils for audio formats.<br/>
 > [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays.<br/>
 > [ndarray](https://github.com/livejs/ndarray) — generic multidimensional arrays.<br/>

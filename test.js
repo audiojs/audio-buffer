@@ -14,6 +14,7 @@ describe('Format', function () {
 		assert.deepEqual(buffer.getChannelData(0), [0, 0, 0]);
 		assert.deepEqual(buffer.getChannelData(1), [1, 1, 1]);
 	});
+
 	it('Planar array', function () {
 		var buffer = new AudioBuffer([
 			0, 1, 0, 1, 0, 1, 0, 1, 0
@@ -24,11 +25,25 @@ describe('Format', function () {
 		assert.deepEqual(buffer.getChannelData(1), [1, 0, 1]);
 		assert.deepEqual(buffer.getChannelData(2), [0, 1, 0]);
 	});
-	it('Change format in runtime')
-});
 
+	it('Change format in runtime');
 
-describe('Creation', function () {
+	it('Buffer int', function () {
+		var data = new Buffer(8*2);
+		data.writeInt16LE(32767, 0);
+		data.writeInt16LE(-32767, 2);
+		data.writeInt16LE(0, 4);
+		data.writeInt16LE(32767, 6);
+
+		var buffer = AudioBuffer(data);
+
+		assert.deepEqual(buffer.get(0, 0), 1);
+		assert.deepEqual(buffer.get(0, 1), 0);
+		assert.deepEqual(buffer.get(1, 0), -1);
+		assert.deepEqual(buffer.get(1, 1), 1);
+
+	});
+
 	it('Buffer float', function () {
 		var data = new Buffer(8*3);
 		data.writeFloatLE(1.0, 0);

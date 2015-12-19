@@ -102,10 +102,19 @@ function AudioBuffer (buffer, format) {
  * Get/set methods - synonyms to NDArray’s ones
  */
 AudioBuffer.prototype.get = function (channel, offset) {
-	return this.data.get(channel, offset) || 0;
+	var value = this.data.get(channel, offset) || 0;
+	//enforce floats
+	if (!this.format.float) {
+		value = pcm.convertSample(value, this.format, {float: true});
+	}
+	return value;
 };
 AudioBuffer.prototype.set = function (channel, offset, value) {
-	return this.data.set(channel, offset, value || 0);
+	value = value || 0;
+	if (!this.format.float) {
+		value = pcm.convertSample(value, {float: true}, this.format);
+	}
+	this.data.set(channel, offset, value);
 };
 
 
@@ -361,7 +370,6 @@ function BufferData (buffer, format) {
 	this.length = Math.floor(buffer.length / format.sampleSize);
 };
 BufferData.prototype.get = function (idx) {
-	// var offset = pcm.getOffset(channel, idx, this, this.length);
 	return this.data[this.readMethodName](idx * this.sampleSize);
 };
 BufferData.prototype.set = function (idx, value) {
