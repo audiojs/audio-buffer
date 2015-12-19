@@ -29,10 +29,10 @@ module.exports = AudioBuffer;
 function AudioBuffer (buffer, format) {
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(buffer, format);
 
-	//take over the options
-	extend(this, format);
+	//obtain format from the passed object
+	this.format = pcm.getFormat(format);
 
-	//if other audio buffer passed - create audio buffe with different format
+	//if other audio buffer passed - create audio buffer with different format
 	if (buffer instanceof AudioBuffer) {
 
 	}
@@ -41,18 +41,20 @@ function AudioBuffer (buffer, format) {
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
 	if (buffer instanceof WebAudioBuffer) {
 		//do away interleaved format
-		this.interleaved = false;
+		this.format.interleaved = false;
 
 		//copy channels data
 		var data = [];
 		for (var i = 0, l = buffer.numberOfChannels; i < l; i++) {
 			data[i] = buffer.getChannelData(i);
 		}
+
+		//create ndim data accessor
 		buffer = new NDData(data);
 	}
-	//if node buffer - provide buffer methods
+	//if node's buffer - provide buffer methods
 	else if (isBuffer(buffer)) {
-		buffer = new BufferData(buffer, this);
+		buffer = new BufferData(buffer, this.format);
 	}
 	//if ndarray - use that
 	else if (isNDArray(buffer)) {
@@ -82,9 +84,6 @@ function AudioBuffer (buffer, format) {
 	}
 
 	//set
-
-	//save reference to the source
-	this._data = buffer;
 
 	//set up length
 	this.length = Math.floor(buffer.length / this.channels);
@@ -118,35 +117,33 @@ NDData.prototype.set = function (channel, offset, value) {
  *
  * @constructor
  */
-function BufferData (buffer, type) {
+function BufferData (buffer, format) {
 	this.data = buffer;
 
+	//take some format values
+	this.readMethodName = format.readMethodName;
+	this.writeMethodName = format.writeMethodName;
+	this.sampleSize = format.sampleSize;
+
+	this.length = Math.floor(buffer.length / format.sampleSize);
+};
+BufferData.prototype.get = function (idx) {
+	// var offset = pcm.getOffset(channel, idx, this, this.length);
+	return this.data[this.readMethodName](idx * this.sampleSize);
+};
+BufferData.prototype.set = function (idx, value) {
+	return this.data[this.writeMethodName](value, idx * this.sampleSize);
 };
 
 
-/**
- * PCM-format params
- */
-extend(AudioBuffer.prototype, pcm.defaultFormat);
-
-
 
 /**
- * Get/set methods
- */
-AudioBuffer.prototype.get = function (channel, offset) {
-	//calc transpose idx, if required
-	return this.data.get(channel, offset);
-};
-AudioBuffer.prototype.set = function (channel, offset, value) {
-	return this.data.set(channel, offset, value);
-};
-
-
-/**
- * Web-audio-api synonims
+ * Format properties accessors
  */
 Object.defineProperties(AudioBuffer.prototype, {
+	/**
+	 * Simple metric based on sampleRate
+	 */
 	duration: {
 		get: function () {
 			return this.length / this.sampleRate;
@@ -156,21 +153,42 @@ Object.defineProperties(AudioBuffer.prototype, {
 		}
 	},
 
+	/**
+	 * Number of channels accessor
+	 */
+	channels: {
+		get: function () {
+			return this.format.channels;
+		},
+		set: function (value) {
+			//TODO: check validity of value?
+			this.format.channels = value;
+		}
+	},
+
+	/**
+	 * WAA AudioBuffer synonim for channels
+	 */
 	numberOfChannels: {
 		get: function () {
 			return this.channels;
 		},
-		set: function () {
-			xxx
+		set: function (value) {
+			this.channels = value;
 		}
 	},
 
-	sampleRate: {
+	/**
+	 * The order to access inner data.
+	 */
+	interleaved: {
 		get: function () {
-			return this.format.sampleRate;
+			return this.format.interleaved;
 		},
-		set: function () {
-			xxx
+		set: function (value) {
+			if (value === this.format.interleaved) return;
+			this.format.interleaved = value;
+			this.data.stride = value ? [1, this.channels] : [this.length, 1];
 		}
 	}
 });
@@ -185,7 +203,7 @@ Object.defineProperties(AudioBuffer.prototype, {
 AudioBuffer.prototype.getChannelData = function (channel) {
 	var result = [];
 	for (var i = 0, l = this.length; i < l; i++) {
-		result.push(this.get(channel, i));
+		result.push(this.data.get(channel, i));
 	}
 	return result;
 };
