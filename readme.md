@@ -16,21 +16,25 @@ var buffer = new AudioBuffer([0,0,1,1], {channels: 2});
 ```js
 //create audio buffer from any type of data source. Pass format as a second argument
 var buffer = new AudioBuffer(data, format);
-```
 
-## AudioBuffer aliases
+//NDarray with the data
+buffer.data;
 
-```js
-//get the duration of underlying audio data, in seconds. Read-only.
+//Raw data object - array, buffer, etc.
+buffer.rawData;
+
+//Duration of the underlying audio data, in seconds
 buffer.duration;
 
-//get the length, in sample-frames. Read-only.
+//Number of samples per channel
 buffer.length;
+buffer.samplesPerFrame;
 
-//get the sample rate. Read-only.
+//Sample rate
 buffer.sampleRate;
 
-//get the number of channels. Read-only.
+//Number of channels
+buffer.channels;
 buffer.numberOfChannels;
 ```
 

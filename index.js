@@ -27,6 +27,8 @@ module.exports = AudioBuffer;
  * @param {∀} buffer Any collection-like object
  */
 function AudioBuffer (buffer, format) {
+	var data;
+
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(buffer, format);
 
 	//obtain format from the passed object
@@ -44,25 +46,26 @@ function AudioBuffer (buffer, format) {
 		this.format.interleaved = false;
 
 		//copy channels data
-		var data = [];
+		data = [];
 		for (var i = 0, l = buffer.numberOfChannels; i < l; i++) {
 			data[i] = buffer.getChannelData(i);
 		}
 
 		//create ndim data accessor
-		buffer = new NDData(data);
+		data = new NDData(data);
 	}
 	//if node's buffer - provide buffer methods
 	else if (isBuffer(buffer)) {
-		buffer = new BufferData(buffer, this.format);
+		data = new BufferData(buffer, this.format);
 	}
 	//if ndarray - use that
 	else if (isNDArray(buffer)) {
+		data = buffer;
 	}
 	//if any type of array - use ndarray
-	// else if (buffer instanceof Array) {
-
-	// }
+	else if (buffer instanceof Array) {
+		data = buffer;
+	}
 	// else if (buffer instanceof TypedArray) {
 
 	// }
@@ -72,24 +75,25 @@ function AudioBuffer (buffer, format) {
 	}
 	//if number = create new array
 	else if (typeof buffer === 'number') {
-		buffer = new Float32Array(buffer)
+		data = new Float32Array(buffer)
 	}
 	//if
 	else if (buffer == null) {
-		buffer = new Float32Array(this.length);
+		data = new Float32Array(this.length);
 	}
 	//if some other generic object with get/set methods
 	else {
 
 	}
 
-	//set
+	//save raw data
+	this.rawData = buffer;
 
 	//set up length
-	this.length = Math.floor(buffer.length / this.channels);
+	this.samplesPerFrame = this.length = Math.floor(data.length / this.channels);
 
 	//use ndarray as inner data storage
-	this.data = new NDArray(buffer, [this.channels, this.length], this.interleaved ? [1, this.channels] : [this.length, 1]);
+	this.data = new NDArray(data, [this.channels, this.length], this.interleaved ? [1, this.channels] : [this.length, 1]);
 };
 
 
@@ -136,6 +140,16 @@ BufferData.prototype.set = function (idx, value) {
 };
 
 
+/**
+ * Get/set methods - synonyms to NDArray’s ones
+ */
+AudioBuffer.prototype.get = function (channel, offset) {
+	return this.data.get(channel, offset);
+};
+AudioBuffer.prototype.set = function (channel, offset, value) {
+	return this.data.set(channel, offset, value);
+};
+
 
 /**
  * Format properties accessors
@@ -167,7 +181,7 @@ Object.defineProperties(AudioBuffer.prototype, {
 	},
 
 	/**
-	 * WAA AudioBuffer synonim for channels
+	 * WAA AudioBuffer synonym for channels
 	 */
 	numberOfChannels: {
 		get: function () {
