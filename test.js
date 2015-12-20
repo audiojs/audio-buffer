@@ -111,7 +111,16 @@ describe('Accessors', function () {
 
 
 describe('Array methods', function () {
+	it('Fill', function () {
+		var a = AudioBuffer([1,2,3,4]);
+		a.fill(1);
 
+		assert.deepEqual(a.toArray(), [1,1,1,1]);
+
+		a.fill(function (channel, offset) { return channel + offset });
+
+		assert.deepEqual(a.toArray(), [0,1,1,2]);
+	});
 });
 
 

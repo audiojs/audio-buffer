@@ -41,10 +41,10 @@ buffer.sampleRate;
 buffer.channels;
 buffer.numberOfChannels;
 
-//Get sample value -1..1, regardless of data format
+//Get sample value
 buffer.get(channel, index);
 
-//Set sample value, -1..1 regardless of data format
+//Set sample value
 buffer.set(channel, index, value);
 
 //Get array containing the data for the channel

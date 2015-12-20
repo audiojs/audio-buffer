@@ -12,6 +12,8 @@ var NDArray = require('ndarray');
 var WebAudioBuffer = typeof window !== 'undefined' ? window.AudioBuffer : function(){};
 var isBuffer = require('is-buffer');
 var isNDArray = require('isndarray');
+var ndfill = require('ndarray-fill');
+
 
 module.exports = AudioBuffer;
 
@@ -235,10 +237,16 @@ AudioBuffer.prototype.slice = function () {
 
 
 /**
- * Array methods
+ * Fill array with value or function
  */
-AudioBuffer.prototype.fill = function () {
+AudioBuffer.prototype.fill = function (fn) {
+	if (!(fn instanceof Function)) {
+		var value = fn;
+		fn = function (channel, offset) { return value; }
+	}
 
+	ndfill(this.data, fn);
+	return this;
 };
 
 
@@ -268,7 +276,7 @@ AudioBuffer.prototype.sort = function () {
 
 
 /**
- * Array methods
+ * Return new AudioBuffer with mapped values
  */
 AudioBuffer.prototype.map = function () {
 
@@ -333,16 +341,23 @@ AudioBuffer.prototype.average
 AudioBuffer.prototype.slowdown
 
 
+
 /**
- * Return plain value as a simple array
+ * Return array, representing inner data
  */
-AudioBuffer.prototype.valueOf = function () {
+AudioBuffer.prototype.toArray = function () {
 	var result = [];
 	for (var channel = 0; channel < this.channels; channel++) {
 		result = result.concat(this.getChannelData(channel))
 	}
 	return result;
-}
+};
+
+
+/**
+ * Return plain value as a simple array
+ */
+AudioBuffer.prototype.valueOf = AudioBuffer.prototype.toArray;
 
 
 
