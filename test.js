@@ -2,6 +2,8 @@ var AudioBuffer = require('./');
 var Speaker = require('audio-speaker');
 var assert = require('assert');
 var now = require('performance-now');
+var pcm = require('pcm-util');
+var extend = require('xtend/mutable');
 
 
 describe('Format', function () {
@@ -70,6 +72,22 @@ describe('Format', function () {
 		assert.deepEqual(buffer.getChannelData(2), [-1, 0.5]);
 	});
 
+	it('Create from AudioBuffer', function () {
+		var a1 = AudioBuffer([1,2,3,4]);
+		var a2 = AudioBuffer(a1);
+
+		var a3 = AudioBuffer(a1, {float: true});
+
+		assert.notEqual(a1, a2);
+		assert.notEqual(a1, a3);
+		assert.notEqual(a1.format, a2.format);
+		assert.notEqual(a1.format, a3.format);
+
+		assert.deepEqual(a1.format, a2.format);
+
+
+		assert.deepEqual(a3.format, pcm.normalizeFormat(extend(pcm.getFormat(pcm.defaultFormat), {float: true})));
+	});
 });
 
 

@@ -31,14 +31,30 @@ function AudioBuffer (buffer, format) {
 
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(buffer, format);
 
-	//obtain format from the passed object
-	//TODO: this is a potential slowdowner, think about using format IDs
-	this.format = pcm.getFormat(format);
-
-	//if other audio buffer passed - create audio buffer with different format
+	//if other audio buffer passed - copy it the fastest way
 	if (buffer instanceof AudioBuffer) {
+		//clone format
+		//FIXME: possible performance issue on lots of operations
+		this.format = extend({}, buffer.format);
 
+		//if other format is passed - we need to recalculate it
+		if (format) {
+			extend(this.format, pcm.getFormat(format));
+			this.format = pcm.normalizeFormat(this.format);
+		}
+		this.length = buffer.length;
+		this.rawData = buffer.rawData;
+
+		//FIXME: there may be an issue of shared NDArray, but as far rawData is also shared...
+		this.data = buffer.data;
+
+		return this;
 	}
+
+	//TODO: detect some formats from array types, like Float32Array
+
+	//obtain format from the passed object
+	this.format = pcm.normalizeFormat(pcm.getFormat(format));
 
 	//detect buffer type, set proper self get/set methods
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
@@ -91,7 +107,7 @@ function AudioBuffer (buffer, format) {
 	this.rawData = buffer;
 
 	//set up length
-	this.samplesPerFrame = this.length = Math.floor(data.length / this.channels);
+	this.length = Math.floor(data.length / this.channels);
 
 	//use ndarray as inner data storage
 	this.data = new NDArray(data, [this.channels, this.length], this.interleaved ? [1, this.channels] : [this.length, 1]);
