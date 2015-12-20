@@ -49,6 +49,12 @@ buffer.set(channel, index, value);
 
 //Get array containing the data for the channel
 buffer.getChannelData(channel);
+
+//Fill buffer with the value or function
+buffer.fill(function (channel, idx) { return 0; });
+
+//Return array of arrays with the inner data
+buffer.toArray();
 ```
 
 ## Related

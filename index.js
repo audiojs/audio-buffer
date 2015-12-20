@@ -11,7 +11,6 @@ var pcm = require('pcm-util');
 var NDArray = require('ndarray');
 var WebAudioBuffer = typeof window !== 'undefined' ? window.AudioBuffer : function(){};
 var isBuffer = require('is-buffer');
-var isNDArray = require('isndarray');
 var ndfill = require('ndarray-fill');
 
 
@@ -72,41 +71,36 @@ function AudioBuffer (buffer, format) {
 
 		//create ndim data accessor
 		data = new NDData(data);
+
+		//save source buffer
+		this.rawData = buffer;
 	}
 	//if node's buffer - provide buffer methods
 	else if (isBuffer(buffer)) {
 		data = new BufferData(buffer, this.format);
-	}
-	//if ndarray - use that
-	else if (isNDArray(buffer)) {
-		data = buffer;
-	}
-	//if any type of array - use ndarray
-	else if (buffer instanceof Array) {
-		data = buffer;
-	}
-	// else if (buffer instanceof TypedArray) {
 
-	// }
-	//if array buffer - create typed array
-	else if (buffer) {
-
+		//save source buffer
+		this.rawData = buffer;
 	}
 	//if number = create new array
 	else if (typeof buffer === 'number') {
-		data = new Float32Array(buffer)
+		data = new Float32Array(buffer);
 	}
-	//if
+	//if none passed
 	else if (buffer == null) {
-		data = new Float32Array(this.length);
+		data = new Float32Array(this.format.samplesPerFrame);
 	}
-	//if some other generic object with get/set methods
+	//rarecase of array buffer
+	else if (buffer instanceof ArrayBuffer) {
+		data = new Float32Array(buffer);
+	}
+	//if ndarray, array, typed array or any object with get/set
 	else {
-
+		data = buffer;
 	}
 
 	//save raw data
-	this.rawData = buffer;
+	if (!this.rawData) this.rawData = data;
 
 	//set up length
 	this.length = Math.floor(data.length / this.channels);
@@ -121,17 +115,10 @@ function AudioBuffer (buffer, format) {
  */
 AudioBuffer.prototype.get = function (channel, offset) {
 	var value = this.data.get(channel, offset) || 0;
-	//enforce floats
-	if (!this.format.float) {
-		value = pcm.convertSample(value, this.format, {float: true});
-	}
 	return value;
 };
 AudioBuffer.prototype.set = function (channel, offset, value) {
 	value = value || 0;
-	if (!this.format.float) {
-		value = pcm.convertSample(value, {float: true}, this.format);
-	}
 	this.data.set(channel, offset, value);
 };
 
@@ -346,10 +333,16 @@ AudioBuffer.prototype.slowdown
  * Return array, representing inner data
  */
 AudioBuffer.prototype.toArray = function () {
-	var result = [];
-	for (var channel = 0; channel < this.channels; channel++) {
-		result = result.concat(this.getChannelData(channel))
+	var channels = this.channels;
+	var length = this.length;
+	var result = Array(channels * length);
+
+	for (var channel = 0; channel < channels; channel++) {
+		for (var offset = 0; offset < length; offset++) {
+			result[this.interleaved ? offset * channels + channel : length * channel + offset ] = this.get(channel, offset);
+		}
 	}
+
 	return result;
 };
 

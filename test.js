@@ -35,14 +35,14 @@ describe('Format', function () {
 		data.writeInt16LE(32767, 0);
 		data.writeInt16LE(-32767, 2);
 		data.writeInt16LE(0, 4);
-		data.writeInt16LE(32767, 6);
+		data.writeInt16LE(12000, 6);
 
 		var buffer = AudioBuffer(data);
 
-		assert.deepEqual(buffer.get(0, 0), 1);
+		assert.deepEqual(buffer.get(0, 0), 32767);
 		assert.deepEqual(buffer.get(0, 1), 0);
-		assert.deepEqual(buffer.get(1, 0), -1);
-		assert.deepEqual(buffer.get(1, 1), 1);
+		assert.deepEqual(buffer.get(1, 0), -32767);
+		assert.deepEqual(buffer.get(1, 1), 12000);
 
 	});
 
@@ -120,6 +120,23 @@ describe('Array methods', function () {
 		a.fill(function (channel, offset) { return channel + offset });
 
 		assert.deepEqual(a.toArray(), [0,1,1,2]);
+	});
+
+	it('toArray', function () {
+		var a = AudioBuffer(4, {interleaved: true});
+
+		a.set(0,0,10);
+		a.set(1,0,20);
+		a.set(0,1,30);
+		a.set(1,1,40);
+
+		assert.deepEqual(a.getChannelData(0), [10, 30]);
+		assert.deepEqual(a.getChannelData(1), [20, 40]);
+		assert.deepEqual(a.toArray(), [10, 20, 30, 40]);
+
+		//TODO: ponder on this
+		// a.interleaved = false;
+		// assert.deepEqual(a.toArray(), [10, 20, 30, 40]);
 	});
 });
 
