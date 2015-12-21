@@ -313,6 +313,56 @@ describe('Performance', function () {
 		});
 
 
+		it('Buffer stream in object mode', function (done) {
+			//buffer stream
+			var c = 0;
+			var bsRead = new stream.Readable({objectMode: true});
+			bsRead._read = function () {
+				// console.log('read', size * 4)
+				var data = new Buffer(size * 4);
+				for (var i = 0; i < size*4; i+=4) {
+					data.writeFloatLE(Math.random(), i);
+				}
+
+				c++;
+				if (c >= dataLength) this.push(null);
+				else this.push(data);
+			};
+			var bsTransform1 = new stream.Transform({objectMode: true});
+			bsTransform1._transform = function (chunk, enc, cb) {
+				// console.log('transform', chunk.length)
+				for (var i = 0; i < size*4; i+=4) {
+					chunk.readFloatLE(i);
+				}
+				this.push(chunk);
+				cb();
+			};
+			var bsTransform2 = new stream.Transform({objectMode: true});
+			bsTransform2._transform = function (chunk, enc, cb) {
+				for (var i = 0; i < size*4; i+=4) {
+					chunk.readFloatLE(i);
+				}
+				this.push(chunk);
+				cb();
+			};
+			var bsWrite = new stream.Writable({objectMode: true});
+			bsWrite._write = function (chunk, enc, cb) {
+				// console.log('write', chunk.readFloatLE(0))
+				for (var i = 0; i < size*4; i+=4) {
+					chunk.readFloatLE(i);
+				}
+				cb();
+			};
+
+
+			var start = now();
+			bsRead.on('end', function () {
+				console.log('Buffer stream in obj mode', now() - start);
+				done();
+			});
+			bsRead.pipe(bsTransform1).pipe(bsTransform2).pipe(bsWrite);
+		});
+
 		it('Object stream', function (done) {
 			//object stream
 			var c = 0;
@@ -377,5 +427,48 @@ describe('Performance', function () {
 
 		//Buffer streams are good only for node and only for non-reading/writing ops.
 		//Object streams are not that really slow comparing to plain array chains, though the mechanism of chained audio-nodes might be somewhat useful.
+
+		//Strangely that passing buffers in object mode is ~5% slower - what is the sense?
+	});
+
+
+	it.skip('ArrayBuffer vs Buffer', function (done) {
+		function ab2b (ab) {
+			var buffer = new Buffer(ab.byteLength);
+			var view = new Uint8Array(ab);
+			for (var i = 0; i < buffer.length; ++i) {
+				buffer[i] = view[i];
+			}
+			return buffer;
+		}
+
+		var number = 1024 * 20, size = 1024;
+
+		//ArrayBuffer
+		var start = now();
+		var data, buffer;
+		for (var n = 0; n < number; n++) {
+			data = new Float32Array(size);
+			for (var i = 0; i < size; i++) {
+				data[i] = Math.random();
+			}
+			buffer = ab2b(data.buffer);
+		}
+		console.log('ArrayBuffer', now() - start);
+
+		//Buffer
+		var start = now();
+		for (var n = 0; n < number; n++) {
+			var data = new Buffer(size * 4);
+			for (var i = 0, l = size*4; i < l; i+=4) {
+				data.writeFloatLE(Math.random(), i);
+			}
+		}
+		console.log('Buffer', now() - start);
+
+		done();
+
+		//Result
+		//Using Float32Array and then converting to buffer is faster than reading/writing buffer ~2-2.8 times, both in node/browser.
 	});
 });
