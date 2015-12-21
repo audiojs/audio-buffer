@@ -180,6 +180,13 @@ Object.defineProperties(AudioBuffer.prototype, {
 });
 
 
+/**
+ * Set format by returning a new audio buffer
+ */
+AudioBuffer.prototype.setFormat = function (format) {
+	xxx;
+};
+
 
 /**
  * Return data associated with the channel.
@@ -332,7 +339,7 @@ AudioBuffer.prototype.slowdown
 /**
  * Return array, representing inner data
  */
-AudioBuffer.prototype.toArray = function () {
+AudioBuffer.prototype.toArray = function (format) {
 	var channels = this.channels;
 	var length = this.length;
 	var result = Array(channels * length);
@@ -344,6 +351,22 @@ AudioBuffer.prototype.toArray = function () {
 	}
 
 	return result;
+};
+
+
+/**
+ * Return buffer, representing inner data
+ */
+AudioBuffer.prototype.toBuffer = function (format) {
+	var channels = this.channels;
+	var length = this.length;
+	var result = new Buffer(channels * length * this.format.sampleSize);
+
+	for (var channel = 0; channel < channels; channel++) {
+		for (var offset = 0; offset < length; offset++) {
+			result[this.interleaved ? offset * channels + channel : length * channel + offset ] = this.get(channel, offset);
+		}
+	}
 };
 
 

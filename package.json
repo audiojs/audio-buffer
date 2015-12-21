@@ -4,7 +4,8 @@
   "description": "Data container for audio processing purposes",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "test-browser": "beefy --index=test.html test.js"
   },
   "repository": {
     "type": "git",

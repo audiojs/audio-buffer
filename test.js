@@ -4,6 +4,7 @@ var assert = require('assert');
 var now = require('performance-now');
 var pcm = require('pcm-util');
 var extend = require('xtend/mutable');
+var stream = require('stream');
 
 
 describe('Format', function () {
@@ -210,7 +211,171 @@ describe('Performance', function () {
 		//object accessor is ~4.5 faster for creating
 		//but ~10% slower for accessing
 		//all accessors ~2-3 times slower than array access
+	});
+
+	it.skip('Buffer read/write vs TypedArray read/write', function () {
+		var size = 1024*100;
+		var buffer = new Buffer(size * 4);
+		var array = new Float32Array(size);
+		Math.random();
+
+		//buffer write
+		var start = now();
+		for (var i = 0; i < size; i++) {
+			buffer.writeFloatLE(Math.random(), i*4);
+		}
+		console.log(now() - start);
+
+		//array write
+		var start = now();
+		for (var i = 0; i < size; i++) {
+			array[i] = Math.random();
+		}
+		console.log(now() - start);
+
+		//Result
+		//buffer write ~15 times slower, even in node.
+	});
 
 
+	describe.skip('Buffer stream vs object stream vs functions', function () {
+		var size = 1024, dataLength = 1024*5;
+		Math.random();
+
+		// //functions set
+		function read () {
+			var chunk = new Float32Array(size);
+			for (var j = 0; j < size; j++) {
+				chunk[j] = Math.random();
+			}
+			return chunk;
+		}
+		function transform (chunk) {
+			for (var j = 0; j < size; j++) {
+				chunk[j];// *= 1.2;
+			}
+			return chunk;
+		}
+		function write (chunk) {
+			for (var j = 0; j < size; j++) {
+				chunk[j];
+			}
+		}
+
+		it('Buffer stream', function (done) {
+			//buffer stream
+			var c = 0;
+			var bsRead = new stream.Readable();
+			bsRead._read = function () {
+				// console.log('read', size * 4)
+				var data = new Buffer(size * 4);
+				for (var i = 0; i < size*4; i+=4) {
+					data.writeFloatLE(Math.random(), i);
+				}
+
+				c++;
+				if (c >= dataLength) this.push(null);
+				else this.push(data);
+			};
+			var bsTransform1 = new stream.Transform();
+			bsTransform1._transform = function (chunk, enc, cb) {
+				// console.log('transform', chunk.length)
+				for (var i = 0; i < size*4; i+=4) {
+					chunk.readFloatLE(i);
+				}
+				this.push(chunk);
+				cb();
+			};
+			var bsTransform2 = new stream.Transform();
+			bsTransform2._transform = function (chunk, enc, cb) {
+				for (var i = 0; i < size*4; i+=4) {
+					chunk.readFloatLE(i);
+				}
+				this.push(chunk);
+				cb();
+			};
+			var bsWrite = new stream.Writable();
+			bsWrite._write = function (chunk, enc, cb) {
+				// console.log('write', chunk.readFloatLE(0))
+				for (var i = 0; i < size*4; i+=4) {
+					chunk.readFloatLE(i);
+				}
+				cb();
+			};
+
+
+			var start = now();
+			bsRead.on('end', function () {
+				console.log('Buffer stream', now() - start);
+				done();
+			});
+			bsRead.pipe(bsTransform1).pipe(bsTransform2).pipe(bsWrite);
+		});
+
+
+		it('Object stream', function (done) {
+			//object stream
+			var c = 0;
+			var osRead = new stream.Readable({objectMode: true});
+			osRead._read = function () {
+				var chunk = read(chunk);
+
+				c++;
+				if (c >= dataLength) this.push(null);
+				else this.push(chunk);
+			};
+			var osTransform1 = new stream.Transform({objectMode: true});
+			osTransform1._transform = function (chunk, enc, cb) {
+				transform(chunk);
+				cb(null, chunk);
+			};
+			var osTransform2 = new stream.Transform({objectMode: true});
+			osTransform2._transform = function (chunk, enc, cb) {
+				transform(chunk);
+				cb(null, chunk);
+			};
+			var osWrite = new stream.Writable({objectMode: true});
+			osWrite._write = function (chunk, enc, cb) {
+				// console.log('write', chunk[0]);
+				write(chunk);
+				cb();
+			};
+
+			var start = now();
+			osRead.on('end', function () {
+				console.log('Object stream', now() - start);
+				done();
+			});
+			osRead.pipe(osTransform1).pipe(osTransform2).pipe(osWrite);
+
+		});
+
+		it('Function chain', function (done) {
+			var start = now();
+			for (var i = 0; i < dataLength; i++) {
+				write(transform(transform(read())));
+			}
+			console.log('Function chain', now() - start);
+
+			done();
+		});
+
+
+
+		//Results, in order of tests: Buffer stream, Object stream, Fn chain
+
+		//Noop
+		//700 vs 400 vs 150 in browser
+		//450 vs 1600 vs 600 in node
+
+		//Manipulating the Float32 data
+		//1600 vs 120 vs 80 in browser
+		//1700 vs 160 vs 130 in node
+
+		//Manipulating the Int16 data
+		//450 vs ... in node
+
+		//Buffer streams are good only for node and only for non-reading/writing ops.
+		//Object streams are not that really slow comparing to plain array chains, though the mechanism of chained audio-nodes might be somewhat useful.
 	});
 });
