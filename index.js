@@ -8,10 +8,9 @@
 var inherits = require('inherits');
 var extend = require('xtend/mutable');
 var pcm = require('pcm-util');
-var NDArray = require('ndarray');
-var WebAudioBuffer = typeof window !== 'undefined' ? window.AudioBuffer : function(){};
 var isBuffer = require('is-buffer');
-var ndfill = require('ndarray-fill');
+var toArrayBuffer = require('buffer-to-arraybuffer');
+var WebAudioBuffer = typeof window !== 'undefined' ? window.AudioBuffer : function(){};
 
 
 module.exports = AudioBuffer;
@@ -27,12 +26,17 @@ module.exports = AudioBuffer;
  *
  * @param {∀} buffer Any collection-like object
  */
-function AudioBuffer (buffer, format) {
+function AudioBuffer (data, channels, sampleRate) {
 	var data;
 
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(buffer, format);
 
-	//if other audio buffer passed - copy it the fastest way
+	//preset params
+	if (channels != null) this.channels = 2;
+	if (sampleRate != null) this.sampleRate = 44100;
+
+
+	//if other audio buffer passed - create fast clone of it
 	if (buffer instanceof AudioBuffer) {
 		//clone format
 		//FIXME: possible performance issue on lots of operations
@@ -52,30 +56,29 @@ function AudioBuffer (buffer, format) {
 		return this;
 	}
 
-	//TODO: detect some formats from array types, like Float32Array
+
+
 
 	//obtain format from the passed object
-	this.format = pcm.normalizeFormat(pcm.getFormat(format));
+	extend(this, pcm.getFormat(format));
+	pcm.normalizeFormat(this);
+
+	//create chanelled data holder
+	this.data = [];
+
+
+	//TODO: detect some formats from array types, like Float32Array
 
 	//detect buffer type, set proper self get/set methods
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
 	if (buffer instanceof WebAudioBuffer) {
-		//do away interleaved format
-		this.format.interleaved = false;
-
 		//copy channels data
-		data = [];
 		for (var i = 0, l = buffer.numberOfChannels; i < l; i++) {
 			data[i] = buffer.getChannelData(i);
 		}
-
-		//create ndim data accessor
-		data = new NDData(data);
-
-		//save source buffer
-		this.rawData = buffer;
 	}
-	//if node's buffer - provide buffer methods
+	//if node's buffer - convert to proper typed array
+	//it is times faster
 	else if (isBuffer(buffer)) {
 		data = new BufferData(buffer, this.format);
 
@@ -94,98 +97,26 @@ function AudioBuffer (buffer, format) {
 	else if (buffer instanceof ArrayBuffer) {
 		data = new Float32Array(buffer);
 	}
+	//if array - parse channeled data
+	else if (Array.isArray(buffer)) {
+		data = buffer;
+	}
 	//if ndarray, array, typed array or any object with get/set
 	else {
 		data = buffer;
 	}
 
-	//save raw data
-	if (!this.rawData) this.rawData = data;
 
-	//set up length
+	//set up params
 	this.length = Math.floor(data.length / this.channels);
-
-	//use ndarray as inner data storage
-	this.data = new NDArray(data, [this.channels, this.length], this.interleaved ? [1, this.channels] : [this.length, 1]);
+	this.duration = this.length / this.sampleRate;
 };
 
 
 /**
- * Get/set methods - synonyms to NDArray’s ones
+ * Take over default format
  */
-AudioBuffer.prototype.get = function (channel, offset) {
-	var value = this.data.get(channel, offset) || 0;
-	return value;
-};
-AudioBuffer.prototype.set = function (channel, offset, value) {
-	value = value || 0;
-	this.data.set(channel, offset, value);
-};
-
-
-/**
- * Format properties accessors
- */
-Object.defineProperties(AudioBuffer.prototype, {
-	/**
-	 * Simple metric based on sampleRate
-	 */
-	duration: {
-		get: function () {
-			return this.length / this.sampleRate;
-		},
-		set: function () {
-			throw Error('dutaion is read-only property');
-		}
-	},
-
-	/**
-	 * Number of channels accessor
-	 */
-	channels: {
-		get: function () {
-			return this.format.channels;
-		},
-		set: function (value) {
-			//TODO: check validity of value?
-			this.format.channels = value;
-		}
-	},
-
-	/**
-	 * WAA AudioBuffer synonym for channels
-	 */
-	numberOfChannels: {
-		get: function () {
-			return this.channels;
-		},
-		set: function (value) {
-			this.channels = value;
-		}
-	},
-
-	/**
-	 * The order to access inner data.
-	 */
-	interleaved: {
-		get: function () {
-			return this.format.interleaved;
-		},
-		set: function (value) {
-			if (value === this.format.interleaved) return;
-			this.format.interleaved = value;
-			this.data.stride = value ? [1, this.channels] : [this.length, 1];
-		}
-	}
-});
-
-
-/**
- * Set format by returning a new audio buffer
- */
-AudioBuffer.prototype.setFormat = function (format) {
-	xxx;
-};
+extend(AudioBuffer.prototype, pcm.defaultFormat);
 
 
 /**
@@ -219,6 +150,44 @@ AudioBuffer.prototype.copyFromChannel = function () {
  */
 AudioBuffer.prototype.copyToChannel = function () {
 
+};
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------non-standard params
+
+
+
+
+
+
+/**
+ * Get/set methods - synonyms to NDArray’s ones
+ */
+AudioBuffer.prototype.get = function (channel, offset) {
+	var value = this.data.get(channel, offset) || 0;
+	return value;
+};
+AudioBuffer.prototype.set = function (channel, offset, value) {
+	value = value || 0;
+	this.data.set(channel, offset, value);
+};
+
+
+/**
+ * Set format by returning a new audio buffer
+ */
+AudioBuffer.prototype.setFormat = function (format) {
+	xxx;
 };
 
 
@@ -290,6 +259,14 @@ AudioBuffer.prototype.concat = function () {
  */
 AudioBuffer.prototype.reduce = function () {
 
+};
+
+
+/**
+ * Just create a clone of audioBuffer
+ */
+AudioBuffer.prototype.clone = function () {
+	return AudioBuffer(this.transfer(this.buffer), this.format);
 };
 
 
@@ -374,51 +351,3 @@ AudioBuffer.prototype.toBuffer = function (format) {
  * Return plain value as a simple array
  */
 AudioBuffer.prototype.valueOf = AudioBuffer.prototype.toArray;
-
-
-
-
-/**
- * N-dimensional unmergeable planar data access wrapper.
- * Like for WAA AudioBuffer, where channels data isn’t mergeable and isn’t deinterleaveable.
- *
- * @constructor
- */
-function NDData (data) {
-	this.data = data;
-	this.length = data[0].length;
-}
-NDData.prototype.get = function (idx) {
-	var offset = idx % this.length;
-	var channel = Math.floor(idx / this.length);
-	return this.data[channel, offset];
-};
-NDData.prototype.set = function (idx, value) {
-	var offset = idx % this.length;
-	var channel = Math.floor(idx / this.length);
-	this.data[channel, offset] = value;
-};
-
-
-/**
- * Typed buffer access data wrapper.
- * Because ndarrays can’t handle typed buffers.
- *
- * @constructor
- */
-function BufferData (buffer, format) {
-	this.data = buffer;
-
-	//take some format values
-	this.readMethodName = format.readMethodName;
-	this.writeMethodName = format.writeMethodName;
-	this.sampleSize = format.sampleSize;
-
-	this.length = Math.floor(buffer.length / format.sampleSize);
-};
-BufferData.prototype.get = function (idx) {
-	return this.data[this.readMethodName](idx * this.sampleSize);
-};
-BufferData.prototype.set = function (idx, value) {
-	return this.data[this.writeMethodName](value, idx * this.sampleSize);
-};

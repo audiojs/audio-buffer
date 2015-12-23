@@ -1,4 +1,4 @@
-Audio buffer is a class to work with audio data. It provides a thin wrapper with a bunch of audio methods for any audio data source — `AudioBuffer`, `Buffer`, `TypedArray`, `Array`, `NDarray` or any `Object` with get/set methods. It stores data as an ndarray, so any [ndarray packages](https://github.com/scijs/ndarray/wiki/ndarray-module-list#core-module) can be used over audio buffers.
+AudioBuffer implementation for node.
 
 ## Usage
 
@@ -7,54 +7,36 @@ Audio buffer is a class to work with audio data. It provides a thin wrapper with
 ```js
 var AudioBuffer = require('audio-buffer');
 
-//create audio buffer from any type of array
-var buffer = new AudioBuffer([0,0,1,1], {channels: 2});
-```
-
-## API
-
-```js
 //Create audio buffer from data source. Pass audio data format as a second argument.
 //Format only affects the way to access raw data, it can be changed at any time.
 var buffer = new AudioBuffer(data, format);
 
-//Format of data
-buffer.format;
-
-//NDarray with the data
+//Data, distributed by channels, like [left, right, ...]
 buffer.data;
-
-//Raw data object - array, buffer, etc.
-buffer.rawData;
 
 //Duration of the underlying audio data, in seconds
 buffer.duration;
 
 //Number of samples per channel
 buffer.length;
-buffer.samplesPerFrame;
 
 //Sample rate
 buffer.sampleRate;
 
-//Number of channels
-buffer.channels;
-buffer.numberOfChannels;
-
-//Get sample value
-buffer.get(channel, index);
-
-//Set sample value
-buffer.set(channel, index, value);
+//Number of channels (violates users over theoretical purity principle, that’s why here’s a synonym)
+buffer.numberOfChannels === buffer.channels;
 
 //Get array containing the data for the channel
 buffer.getChannelData(channel);
 
-//Fill buffer with the value or function
-buffer.fill(function (channel, idx) { return 0; });
+//
+buffer.copyFromChannel(destination, channelNumber, startInChannel?);
 
-//Return array of arrays with the inner data
-buffer.toArray();
+//
+buffer.copyToChannel(source, channelNumber, startInChannel?);
+
+//Convert to node-buffer with specified format
+
 ```
 
 ## Related

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "test-browser": "beefy --index=test.html test.js"
+    "test-browser": "beefy --index=test.html test.js",
+    "benchmark": "mocha benchmark.js",
+    "benchmark-browser": "beefy --index=benchmark.html benchmark.js"
   },
   "repository": {
     "type": "git",
@@ -33,6 +35,8 @@
   "homepage": "https://github.com/audio-lab/buffer",
   "dependencies": {
     "arr-flatten": "^1.0.1",
+    "arraybuffer-to-buffer": "0.0.1",
+    "buffer-to-arraybuffer": "0.0.2",
     "cwise": "^1.0.8",
     "inherits": "^2.0.1",
     "is-buffer": "^1.1.0",
