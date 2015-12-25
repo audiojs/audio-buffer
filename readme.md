@@ -8,9 +8,9 @@
 ```js
 var AudioBuffer = require('audio-buffer');
 
-//Create audio buffer from data source or of the length.
-//Data source is interpreted as a planar sequence of float32 data.
-//It can be Array, TypedArray, ArrayBuffer, Buffer, AudioBuffer, DataView, NDArray or any object with buffer or data property.
+//Create audio buffer from a data source or of a length.
+//Data is interpreted as a planar sequence of float32 samples.
+//It can be Array, TypedArray, ArrayBuffer, Buffer, AudioBuffer, DataView, NDArray etc.
 var buffer = new AudioBuffer(channels?, data|length, sampleRate?);
 
 //Duration of the underlying audio data, in seconds
@@ -25,7 +25,7 @@ buffer.sampleRate;
 //Default number of channels is 2
 buffer.numberOfChannels;
 
-//Get array containing the data for the channel
+//Get array containing the data for the channel (not copied)
 buffer.getChannelData(channel);
 
 //Place data from channel to destination Float32Array
@@ -42,6 +42,5 @@ AudioBuffer.FloatArray = Float32Array;
 
 ## Related
 
-> [pcm-util](https://npmjs.org/package/pcm-util) — utils for audio formats, convertions etc.<br/>
-> [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays. A somewhat alternative approach to wrap audio data, based on ndarrays.<br/>
-> [ndarray](https://github.com/livejs/ndarray) — generic multidimensional arrays.<br/>
+> [pcm-util](https://npmjs.org/package/pcm-util) — utils for audio format convertions.<br/>
+> [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays. A somewhat alternative approach to wrap audio data, based on ndarrays, used by some modules in [livejs](https://github.com/livejs).<br/>

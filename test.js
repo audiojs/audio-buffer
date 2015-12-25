@@ -4,6 +4,7 @@ var now = require('performance-now');
 var pcm = require('pcm-util');
 var extend = require('xtend/mutable');
 var stream = require('stream');
+var NDArray = require('ndarray');
 
 
 describe('Creation', function () {
@@ -59,6 +60,40 @@ describe('Creation', function () {
 		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
 		assert.deepEqual(a.getChannelData(0), [1,-1]);
 	});
+
+	it('from NDArray', function () {
+		var a = AudioBuffer( new NDArray(new Float32Array([1,-1,0.5,-0.5]), [2,2]) );
+		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
+		assert.deepEqual(a.getChannelData(0), [1,-1]);
+
+		//FIXME: there might need more tests, like detection of ndarray dimensions etc
+	});
+
+	it('from Array of Arrays', function () {
+		var a = AudioBuffer( 3, [ [1, -1], [0.5,-0.5], [-1, 0.5] ] );
+		assert.deepEqual(a.getChannelData(2), [-1,0.5]);
+		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
+		assert.deepEqual(a.getChannelData(0), [1,-1]);
+	});
+
+	it.skip('from WAABuffer', function () {
+
+	});
+});
+
+
+describe('Params', function () {
+	it('duration', function () {
+		var buffer = new AudioBuffer(Array(4));
+	});
+
+	it('length', function () {
+
+	});
+
+	it('sampleRate', function () {
+
+	});
 });
 
 
@@ -74,4 +109,9 @@ describe('Methods', function () {
 	it('copyFromChannel', function () {
 
 	});
+});
+
+
+describe('Browser', function () {
+
 });

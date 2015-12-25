@@ -70,7 +70,9 @@ function AudioBuffer (channels, data, sampleRate) {
 	//NOTE: node 4.x+ at least detects Buffer as ArrayBuffer view, which is, hm...
 	else if (ArrayBuffer.isView(data) || data instanceof ArrayBuffer) {
 		this.data = [];
-		data = new AudioBuffer.FloatArray(data.buffer || data);
+		if (!(data instanceof AudioBuffer.FloatArray)) {
+			data = new AudioBuffer.FloatArray(data.buffer || data);
+		}
 		var len = data.length / this.numberOfChannels;
 		for (var i = 0; i < this.numberOfChannels; i++ ) {
 			this.data.push(data.slice(i* len, i * len + len));
@@ -114,7 +116,7 @@ function AudioBuffer (channels, data, sampleRate) {
 
 	//if ndarray, typedarray or other data-holder passed - redirect plain databuffer
 	else if (data.data || data.buffer) {
-		return AudioBuffer(channels, data.data || data.buffer, sampleRate);
+		return new AudioBuffer(this.numberOfChannels, data.data || data.buffer, this.sampleRate);
 	}
 
 
