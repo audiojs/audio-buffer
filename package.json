@@ -15,9 +15,11 @@
     "url": "https://github.com/audio-lab/buffer"
   },
   "files": [
+    "buffer.js",
     "index.js",
     "browser.js"
   ],
+  "browser": "browser.js",
   "keywords": [
     "audio",
     "pcm",
@@ -36,16 +38,16 @@
   "homepage": "https://github.com/audio-lab/buffer",
   "dependencies": {
     "buffer-to-arraybuffer": "^0.0",
+    "is-browser": "^2.0.1",
+    "audio-context": "^0.1.0",
     "is-buffer": "^1.1.0"
   },
   "devDependencies": {
     "arr-flatten": "^1.0.1",
     "arraybuffer-to-buffer": "^0.0",
-    "audio-context": "^0.1.0",
     "audio-speaker": "^1.1.3",
     "browserify": "^12.0.1",
     "inherits": "^2.0.1",
-    "is-browser": "^2.0.1",
     "is-typedarray": "^1.0.0",
     "isndarray": "^1.0.0",
     "mocha": "^2.3.4",

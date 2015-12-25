@@ -38,6 +38,9 @@ buffer.copyToChannel(source, channelNumber, startInChannel?);
 //Type of storage to use for data - replace to Float64Array, if needed.
 //It will only affect node implementation.
 AudioBuffer.FloatArray = Float32Array;
+
+//In browser, you can set the context to create buffers (online/offline)
+AudioBuffer.context;
 ```
 
 ## Related

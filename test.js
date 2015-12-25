@@ -89,8 +89,9 @@ describe('Creation', function () {
 		assert.deepEqual(a.getChannelData(0), [1,1]);
 
 		//test that data is bound
-		buf.getChannelData(2).fill(0.5);
-		assert.deepEqual(a.getChannelData(2), buf.getChannelData(2));
+		//NOTE: it seems that is shouldn’t - we can gracefully clone the buffer
+		// buf.getChannelData(2).fill(0.5);
+		// assert.deepEqual(a.getChannelData(2), buf.getChannelData(2));
 
 	});
 });
@@ -101,8 +102,10 @@ describe('Params', function () {
 		var buffer = new AudioBuffer(1, Array(441));
 		assert.equal(buffer.duration, 0.01);
 
-		var buffer = new AudioBuffer();
-		assert.equal(buffer.duration, 0);
+		assert.throws(function () {
+			var buffer = new AudioBuffer();
+			assert.equal(buffer.duration, 0);
+		});
 	});
 
 	it('length', function () {
@@ -172,6 +175,6 @@ describe('Methods', function () {
 });
 
 
-describe('Browser', function () {
+describe('WAABuffer for the browser', function () {
 
 });

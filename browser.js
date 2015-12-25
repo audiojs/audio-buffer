@@ -4,18 +4,37 @@
  * @module audio-buffer/browser
  */
 
+
 var context = require('audio-context');
+var _AudioBuffer = require('./buffer');
+
+
+//if no AudioBuffer in window - just return a polyfill
+if (!AudioBuffer) return module.exports = _AudioBuffer;
 
 
 /**
- * Create browser audioBuffer for the
+ * Create WebAudioBuffer
  *
  * @constructor
  */
-function AudioBuffer (channels, data, sampleRate) {
-	var buffer = AudioBuffer.context.createBuffer(channels, length, sampleRate);
-}
+function createBuffer (channels, data, sampleRate) {
+	var buffer = new _AudioBuffer(channels, data, sampleRate);
+
+	//create WAA buffer
+	var audioBuffer = createBuffer.context.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+	//fill channels
+	for (var i = 0; i < buffer.numberOfChannels; i++) {
+		audioBuffer.getChannelData(i).set(buffer.getChannelData(i));
+	}
+
+	return audioBuffer;
+};
 
 
 /** Set context, though can be redefined */
-AudioBuffer.context = context;
+createBuffer.context = context;
+
+
+module.exports = createBuffer;
