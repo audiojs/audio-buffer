@@ -10,6 +10,25 @@
 
 ## Questions
 
+* Should we transform data from interleaved to planar and from int to floar, if the passed format of data is weird?
+	* - ✔ delegate to pcm-util
+* Order of params - AudioBuffer(data, channels?, rate?) or AudioBuffer(channels, data, rate?)
+	* + first is intuitive, but unnatural if channel number is not passed
+	* - second is compatible w/spec for `ctx.createBuffer(channels, length, rate)`, though there is no spec on constructor.
+	* + all buffers have data/len as first argument, so `new AudioBuffer(1024)` is obviously for 1024 samples, stereo (?, but doesnt matter much as mono will work also if default channels = 2). vs `new AudioBuffer(2, 1024)`
+	* - for ndim array is more obvious to show dimensions `new NDimArray(channels, len)`
+	* - other implementations, like node-web-audio-api, include `new AudioBuffer(ch, len, rate)` order
+	* + if already formatted object passed, like other abuffer or separated array, there a contradiction may occur: `new AudioBuffer([[0,1], [2,3]], 3)` - how many channels - 2 or 3? 3, but third is left empty. In case `new AudioBuffer(3, [[0,1], [2,3]])` it is also ok tho, just impossible to infer that number like `new AudioBuffer([[0,1], [2,3]])` → 2 channels.
+	* Maybe make it compatible for both cases? If (ch, len, rate) - use classic, otherwise - use modern?
+		* - No, it looks like untaken decision.
+	* - ✔ As far buffer complies the standard - be standard. AudioBuffer(channels?, data|length, sampleRate) is ok, totally.
+* Do we have to extend format, or just mimic WAABuffer?
+	* + format is useful on outcoding
+	* - format is not related to buffer, buffer is logical structure, not low-level
+	* How to transform interleaved int16 (node default) to buffer?
+		* Just to have toBuffer(format), from(array, format)?
+	* - interleaved - is the first problematic property. Number type - the second.
+	* ✔ keep it simple, mimic WAABuffer in node, provide WAABuffer constructor in browser
 * Clone passed argument or keep reference to it?
 	* + With WAAudioBuffer its cool to reference
 	* - The paradigm (Buffer, TypedArrays) is to clone passed data in constructor
@@ -18,6 +37,7 @@
 	* + Saving reference is fast and useful - just a wrapper for the data
 	* - Saving reference prevents from garbage-collecting the data, right?
 		* + As far we have refs on our cloned data - is also keep reference to the memory area, so references are shorter
+	* ✔ Keeping reference if possible seems to be a good practice
 * What is better: keeping data source unchanged and accessing it on any operation or converting it to fast array and then converting back?
 	* + Converting, handling and converting back seems to be faster than each operation, both for browser/node both for buffer/dataview, 2+ times. In case of avoiding conversion - up to 10 times.
 	* - Converting unbinds data, which is baaad, we really want to preserve data binding, but when to update source values then?
@@ -28,13 +48,14 @@
 			* Simple WAA
 		* Ex: calculate FFT in analyserNode from audioBuffer, ASAP.
 			* getChannelData (instant), create ndarray (should be speedy), use fft (fast).
-* What is the profit of keeping ndarray wrapper over the raw data?
+	* ✔ Just polyfill ArrayBuffer, force format to be floating point
+* ✘ What is the profit of keeping ndarray wrapper over the raw data?
 	* - `fill` method is implementable manually quite efficiently
 		* Use fill method of typedarray beneath
 	* - ndarray utils can be applicable as `ndmethod(ndarray(buffer.data))`
 	* + the way to access data without destruction of inner structure
 		* - requires data wrapper with get/set methods
-* What does it give to us keeping format as a separate property?
+* ✘ What does it give to us keeping format as a separate property?
 	* - it isn’t faster on creation, in fact having prototyped these props is faster
 	* - intuitively, the buffer itself has all properties, not some inner stuff like `.format.shit`
 * Is it better to keep data channeled, or single-buffer?
@@ -71,6 +92,6 @@
 	* .volume
 	* .length (number of samples)
 	* ndarray gives speed, community and supportability
-* Maybe call it sound?
+* ✘ Maybe call it sound?
 	* + similar to color.
 	* - for sound there might be other utils, like pulse. Sound is not necessarily the data.
