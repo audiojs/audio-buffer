@@ -1,6 +1,6 @@
 {
   "name": "audio-buffer",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Data container for audio processing purposes",
   "main": "index.js",
   "scripts": {
