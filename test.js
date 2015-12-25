@@ -5,6 +5,8 @@ var pcm = require('pcm-util');
 var extend = require('xtend/mutable');
 var stream = require('stream');
 var NDArray = require('ndarray');
+var ctx = require('audio-context');
+var isBrowser = require('is-browser');
 
 
 describe('Creation', function () {
@@ -13,7 +15,6 @@ describe('Creation', function () {
 			0, 1, 0, 1, 0, 1
 		]);
 
-		// assert.deepEqual(buffer, [0,1,0,1]);
 		assert.deepEqual(buffer.getChannelData(0), [0, 1, 0]);
 		assert.deepEqual(buffer.getChannelData(1), [1, 0, 1]);
 	});
@@ -23,7 +24,6 @@ describe('Creation', function () {
 			0, 1, 0, 1, 0, 1, 0, 1, 0
 		]));
 
-		// assert.deepEqual(buffer, [0,1,0,1]);
 		assert.deepEqual(buffer.getChannelData(0), [0, 1, 0]);
 		assert.deepEqual(buffer.getChannelData(1), [1, 0, 1]);
 		assert.deepEqual(buffer.getChannelData(2), [0, 1, 0]);
@@ -76,7 +76,21 @@ describe('Creation', function () {
 		assert.deepEqual(a.getChannelData(0), [1,-1]);
 	});
 
-	it.skip('from WAABuffer', function () {
+	if (isBrowser) it('from WAABuffer', function () {
+		var buf = ctx.createBuffer(3, 2, 44100);
+
+		buf.getChannelData(0).fill(1);
+		buf.getChannelData(1).fill(-1);
+		buf.getChannelData(2).fill(0);
+
+		var a = AudioBuffer( 3, buf );
+		assert.deepEqual(a.getChannelData(2), [0,0]);
+		assert.deepEqual(a.getChannelData(1), [-1,-1]);
+		assert.deepEqual(a.getChannelData(0), [1,1]);
+
+		//test that data is bound
+		buf.getChannelData(2).fill(0.5);
+		assert.deepEqual(a.getChannelData(2), buf.getChannelData(2));
 
 	});
 });
@@ -84,30 +98,76 @@ describe('Creation', function () {
 
 describe('Params', function () {
 	it('duration', function () {
-		var buffer = new AudioBuffer(Array(4));
+		var buffer = new AudioBuffer(1, Array(441));
+		assert.equal(buffer.duration, 0.01);
+
+		var buffer = new AudioBuffer();
+		assert.equal(buffer.duration, 0);
 	});
 
 	it('length', function () {
-
+		var buffer = new AudioBuffer(1, Array(12));
+		assert.equal(buffer.length, 12);
+		var buffer = new AudioBuffer(2, Array(12));
+		assert.equal(buffer.length, 6);
+		var buffer = new AudioBuffer(3, Array(12));
+		assert.equal(buffer.length, 4);
+		var buffer = new AudioBuffer(4, Array(12));
+		assert.equal(buffer.length, 3);
+		var buffer = new AudioBuffer(6, Array(12));
+		assert.equal(buffer.length, 2);
 	});
 
 	it('sampleRate', function () {
+		var buffer = new AudioBuffer(1, Array(441));
+		assert.equal(buffer.duration, 0.01);
 
+		var buffer = new AudioBuffer(1, Array(441), 44100*2);
+		assert.equal(buffer.duration, 0.005);
 	});
 });
 
 
 describe('Methods', function () {
 	it('getChannelData', function () {
-		var buffer = new AudioBuffer(Array(4));
+		var buffer = new AudioBuffer(1, Array(4));
+
+		assert.deepEqual(buffer.getChannelData(0), [0,0,0,0]);
 	});
 
 	it('copyToChannel', function () {
+		var a = new AudioBuffer(2, 40);
+		var arr = new Float32Array(40);
+		arr.fill(-0.5);
 
+		a.copyToChannel(arr, 0, 0);
+
+		assert.deepEqual(arr, a.getChannelData(0));
+
+
+		a.copyToChannel(arr, 1, 10);
+
+		var zeros = new Float32Array(10);
+		arr.set(zeros);
+
+		assert.deepEqual(arr, a.getChannelData(1));
 	});
 
 	it('copyFromChannel', function () {
+		var a = new AudioBuffer(2, 40);
+		var arr = new Float32Array(40);
+		a.getChannelData(0).fill(-0.5);
+		a.getChannelData(1).fill(0.5);
+		a.getChannelData(1).set((new Float32Array(20)).fill(-0.5), 20);
 
+		a.copyFromChannel(arr, 0);
+		assert.deepEqual(arr, a.getChannelData(0));
+
+		a.copyFromChannel(arr, 1, 10);
+
+		var fixture = Array(10).fill(0.5).concat(Array(30).fill(-0.5));
+
+		assert.deepEqual(arr, fixture);
 	});
 });
 

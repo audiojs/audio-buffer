@@ -14,9 +14,6 @@ var b2ab = require('buffer-to-arraybuffer');
 var WebAudioBuffer = typeof window !== 'undefined' ? window.AudioBuffer : function(){};
 
 
-module.exports = AudioBuffer;
-
-
 
 /**
  * @constructor
@@ -86,21 +83,20 @@ function AudioBuffer (channels, data, sampleRate) {
 			this.data.push(new AudioBuffer.FloatArray(data));
 		}
 	}
-	//if none passed
+	//if none passed (radical weird case)
+	//FIXME: ponder on this use-case, which is the best object id no args passed?
 	else if (data == null) {
-		//FIXME: second reason for the default format, as what is default length, huh? Null...
 		this.data = [];
-		this.length = 1024;
+		this.length = 0;
 		for (var i = 0; i < this.numberOfChannels; i++ ) {
-			this.data.push(new AudioBuffer.FloatArray(this.length));
+			this.data.push(new AudioBuffer.FloatArray());
 		}
 	}
 	//if array - parse channeled data
 	else if (Array.isArray(data)) {
 		this.data = [];
-		//FIXME: interleaved? which number format? pcm-util should know.
 		//if separated data passed already
-		if (typeof data[0] !== 'number') {
+		if (data[0] instanceof Object) {
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
 				this.data.push(new AudioBuffer.FloatArray(data[i]));
 			}
@@ -109,7 +105,10 @@ function AudioBuffer (channels, data, sampleRate) {
 		else {
 			var len = Math.floor(data.length / this.numberOfChannels);
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
-				this.data.push(new AudioBuffer.FloatArray(data.slice(i * len, i * len + len)));
+				var channelData = data.slice(i * len, i * len + len);
+				//force channel data be numeric
+				if (channelData[0] == null) channelData = len;
+				this.data.push(new AudioBuffer.FloatArray(channelData));
 			}
 		}
 	}
@@ -152,19 +151,26 @@ AudioBuffer.prototype.getChannelData = function (channel) {
  */
 AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, startInChannel) {
 	var data = this.data[channelNumber];
-	for (var i = startInChannel || 0, j = 0, l = Math.min(destination.length, this.length - i); i < l; i++, j++) {
+	if (startInChannel == null) startInChannel = 0;
+	for (var i = startInChannel, j = 0; i < data.length && j < destination.length; i++, j++) {
 		destination[j] = data[i];
 	}
 };
 
 
 /**
- * Place data from the source to the channel data, starting (in self) from the position
+ * Place data from the source to the channel, starting (in self) from the position
  * Clone of WAAudioBuffer
  */
 AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInChannel) {
 	var data = this.data[channelNumber];
-	for (var i = startInChannel || 0, j = 0; i < this.length; i++, j++) {
+
+	if (!startInChannel) startInChannel = 0;
+
+	for (var i = startInChannel, j = 0; i < this.length && j < source.length; i++, j++) {
 		data[i] = source[j];
 	}
 };
+
+
+module.exports = AudioBuffer;
