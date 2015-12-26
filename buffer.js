@@ -45,9 +45,9 @@ function AudioBuffer (channels, data, sampleRate) {
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;
 
-		//copy channels data
+		//copy channel's data
 		for (var i = 0, l = data.numberOfChannels; i < l; i++) {
-			this.data.push(data.getChannelData(i));
+			this.data.push(data.getChannelData(i).slice());
 		}
 	}
 
@@ -71,6 +71,8 @@ function AudioBuffer (channels, data, sampleRate) {
 		}
 		var len = data.length / this.numberOfChannels;
 		for (var i = 0; i < this.numberOfChannels; i++ ) {
+			//NOTE: we could’ve done subarray here to create a reference, but...
+			//it will not be compatible with the WAA buffer - it cannot be a reference
 			this.data.push(data.slice(i* len, i * len + len));
 		}
 	}
@@ -137,6 +139,8 @@ AudioBuffer.FloatArray = Float32Array;
  * @return {Array} Array containing the data
  */
 AudioBuffer.prototype.getChannelData = function (channel) {
+	//FIXME: ponder on this, whether we really need that rigorous check, it may affect performance
+	if (channel > this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
 	return this.data[channel];
 };
 

@@ -53,6 +53,10 @@ describe('Creation', function () {
 		assert.notEqual(a1, a2);
 		assert.notEqual(a1, a3);
 		assert.deepEqual(a3.getChannelData(1), [0.5,-0.5]);
+
+		a1.getChannelData(0)[0] = 0;
+		assert.deepEqual(a1.getChannelData(0), [0,-1]);
+		assert.deepEqual(a2.getChannelData(0), [1,-1]);
 	});
 
 	it('from ArrayBuffer', function () {
