@@ -98,12 +98,17 @@ describe('Creation', function () {
 	it('clone', function () {
 		var a = new AudioBuffer(3, 10, 1000);
 		var b = new AudioBuffer(a);
+		var c = new AudioBuffer(2, a, 2000);
 
 		assert.notEqual(a, b);
 		assert.deepEqual(a.getChannelData(0), b.getChannelData(0));
 		assert.deepEqual(a.getChannelData(2), b.getChannelData(2));
 		assert.equal(b.numberOfChannels, 3);
 		assert.equal(b.sampleRate, 1000);
+		assert.equal(c.sampleRate, 2000);
+		assert.equal(c.numberOfChannels, 2);
+		assert.deepEqual(a.getChannelData(0), c.getChannelData(0));
+		assert.deepEqual(a.getChannelData(1), c.getChannelData(1));
 
 		if (isBrowser) {
 			var a = ctx.createBuffer(2,10,44100);

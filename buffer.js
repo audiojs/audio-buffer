@@ -28,6 +28,7 @@ function AudioBuffer (channels, data, sampleRate) {
 	//having new AudioBuffer(2) does not make sense as 2 - number of channels
 	if (data == null) {
 		data = channels;
+		channels = null;
 	}
 
 	//audioCtx.createBuffer() - complacent arguments
@@ -40,8 +41,8 @@ function AudioBuffer (channels, data, sampleRate) {
 	//if other audio buffer passed - create fast clone of it
 	if (data instanceof AudioBuffer) {
 		this.data = data.data;
-		this.numberOfChannels = data.numberOfChannels;
-		this.sampleRate = data.sampleRate;
+		if (channels == null) this.numberOfChannels = data.numberOfChannels;
+		if (sampleRate == null) this.sampleRate = data.sampleRate;
 	}
 
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
