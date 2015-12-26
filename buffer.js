@@ -30,7 +30,6 @@ function AudioBuffer (channels, data, sampleRate) {
 		data = channels;
 		channels = null;
 	}
-
 	//audioCtx.createBuffer() - complacent arguments
 	else {
 		if (sampleRate != null) this.sampleRate = sampleRate;
@@ -38,21 +37,17 @@ function AudioBuffer (channels, data, sampleRate) {
 	}
 
 
+
 	//if other audio buffer passed - create fast clone of it
-	if (data instanceof AudioBuffer) {
-		this.data = data.data;
+	//if WAA AudioBuffer - get buffer’s data (it is bounded)
+	if (data instanceof AudioBuffer || data instanceof WebAudioBuffer) {
+		this.data = [];
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;
-	}
-
-	//if WAA AudioBuffer - get buffer’s data (it is bounded)
-	//FIXME: is it really a case? it clones buffer in browser, though...
-	else if (data instanceof WebAudioBuffer) {
-		this.data = [];
 
 		//copy channels data
 		for (var i = 0, l = data.numberOfChannels; i < l; i++) {
-			this.data[i] = data.getChannelData(i);
+			this.data.push(data.getChannelData(i));
 		}
 	}
 
