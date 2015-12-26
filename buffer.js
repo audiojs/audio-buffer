@@ -40,6 +40,8 @@ function AudioBuffer (channels, data, sampleRate) {
 	//if other audio buffer passed - create fast clone of it
 	if (data instanceof AudioBuffer) {
 		this.data = data.data;
+		this.numberOfChannels = data.numberOfChannels;
+		this.sampleRate = data.sampleRate;
 	}
 
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)

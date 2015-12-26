@@ -1,7 +1,7 @@
 {
   "name": "audio-buffer",
   "version": "2.1.0",
-  "description": "Data container for audio processing purposes",
+  "description": "Audio data container",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
@@ -28,7 +28,8 @@
     "processing",
     "ndarray",
     "ndsamples",
-    "audio-buffer"
+    "audio-buffer",
+    "web-audio"
   ],
   "author": "DY <dfcreative@gmail.com>",
   "license": "MIT",

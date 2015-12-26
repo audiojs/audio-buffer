@@ -94,6 +94,26 @@ describe('Creation', function () {
 		// assert.deepEqual(a.getChannelData(2), buf.getChannelData(2));
 
 	});
+
+	it('clone', function () {
+		var a = new AudioBuffer(3, 10, 1000);
+		var b = new AudioBuffer(a);
+
+		assert.notEqual(a, b);
+		assert.deepEqual(a.getChannelData(0), b.getChannelData(0));
+		assert.deepEqual(a.getChannelData(2), b.getChannelData(2));
+		assert.equal(b.numberOfChannels, 3);
+		assert.equal(b.sampleRate, 1000);
+
+		if (isBrowser) {
+			var a = ctx.createBuffer(2,10,44100);
+			var b = new AudioBuffer(a);
+
+			assert.notEqual(a, b);
+			assert.notEqual(a.getChannelData(0), b.getChannelData(0));
+			assert.deepEqual(a.getChannelData(0), b.getChannelData(0));
+		}
+	});
 });
 
 
