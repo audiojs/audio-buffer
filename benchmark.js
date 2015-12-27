@@ -357,7 +357,7 @@ it.skip('Set of typedArrays vs DataView', function () {
 });
 
 
-it.only('Create buffer vs create arraybuffer', function () {
+it.skip('Create buffer vs create arraybuffer', function () {
 	this.timeout(10000);
 
 	var times = 1e6;
@@ -401,6 +401,17 @@ it.only('Create buffer vs create arraybuffer', function () {
 	}
 	time += now();
 	console.log('Clone buffer %s ops/s', times / time);
+
+
+	var time = -now();
+	var a = new Buffer(size);
+	a[0] = 1;
+	for (var i = 0; i < times; i++) {
+		var b = a.buffer.slice(a.byteOffset, a.byteLength + a.byteOffset);
+		// b[size-1] = 1;
+	}
+	time += now();
+	console.log('ArrayBuffer from buffer %s ops/s', times / time);
 
 
 	//Results
@@ -558,4 +569,41 @@ it.skip('toBuffer', function () {
 	time += now();
 	assert.equal(b[size - 1], 1)
 	console.log('ArrayBuffer %s ops/s', times / time);
+});
+
+
+it.skip('toArrayBuffer', function () {
+	function a1 (buffer) {
+		var ab = new ArrayBuffer(buffer.length);
+		var view = new Uint8Array(ab);
+		for (var i = 0; i < buffer.length; ++i) {
+			view[i] = buffer[i];
+		}
+		return ab;
+	}
+
+	function a2 (buffer) {
+		return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+	}
+
+
+	var size = 1024, times = 1024;
+	var b = new Buffer(size);
+	var a;
+
+	//cycle
+	var time = -now();
+	for (var i = 0; i < times; i++) {
+		a = a1(b);
+	}
+	time += now();
+	console.log('Cycle %s ops/s', times / time);
+
+	//slice
+	var time = -now();
+	for (var i = 0; i < times; i++) {
+		a = a2(b);
+	}
+	time += now();
+	console.log('Slice %s ops/s', times / time);
 });
