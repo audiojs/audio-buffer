@@ -33,10 +33,16 @@ function AudioBuffer (channels, data, sampleRate) {
 	}
 
 
-
+	//if number = create new array (spec's case)
+	if (typeof data === 'number') {
+		this.data = [];
+		for (var i = 0; i < this.numberOfChannels; i++ ) {
+			this.data.push(new AudioBuffer.FloatArray(data));
+		}
+	}
 	//if other audio buffer passed - create fast clone of it
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
-	if (isAudioBuffer(data)) {
+	else if (isAudioBuffer(data)) {
 		this.data = [];
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;
@@ -46,7 +52,6 @@ function AudioBuffer (channels, data, sampleRate) {
 			this.data.push(data.getChannelData(i).slice());
 		}
 	}
-
 	//if node's buffer - convert to proper typed array
 	//FIXME: remove this, as the latest node seems to cover buffers as views to ArrayBuffers. Or (even better) - use buffer’s ArrayBuffer here, if possible
 	else if (isBuffer(data)) {
@@ -57,9 +62,8 @@ function AudioBuffer (channels, data, sampleRate) {
 			this.data.push(new AudioBuffer.FloatArray(b2ab(data.slice(i * len, i * len + len))));
 		}
 	}
-
 	//TypedArray, Buffer, DataView etc, or ArrayBuffer
-	//NOTE: node 4.x+ at least detects Buffer as ArrayBuffer view, which is, hm...
+	//NOTE: node 4.x+ detects Buffer as ArrayBuffer view
 	else if (ArrayBuffer.isView(data) || data instanceof ArrayBuffer) {
 		this.data = [];
 		if (!(data instanceof AudioBuffer.FloatArray)) {
@@ -71,19 +75,6 @@ function AudioBuffer (channels, data, sampleRate) {
 			//it will not be compatible with the WAA buffer - it cannot be a reference
 			this.data.push(data.slice(i* len, i * len + len));
 		}
-	}
-
-	//if number = create new array
-	else if (typeof data === 'number') {
-		this.data = [];
-		for (var i = 0; i < this.numberOfChannels; i++ ) {
-			this.data.push(new AudioBuffer.FloatArray(data));
-		}
-	}
-	//if none passed (radical weird case)
-	else if (!data) {
-		//it’d be strange use-case
-		throw Error('Failed to create buffer: the data is not provided or the number of frames is zero');
 	}
 	//if array - parse channeled data
 	else if (Array.isArray(data)) {
@@ -105,11 +96,16 @@ function AudioBuffer (channels, data, sampleRate) {
 			}
 		}
 	}
-
 	//if ndarray, typedarray or other data-holder passed - redirect plain databuffer
 	else if (data.data || data.buffer) {
 		return new AudioBuffer(this.numberOfChannels, data.data || data.buffer, this.sampleRate);
 	}
+	//if none passed (radical weird case), or no type detected
+	else {
+		//it’d be strange use-case
+		throw Error('Failed to create buffer: check provided arguments');
+	}
+
 
 
 	//set up params
