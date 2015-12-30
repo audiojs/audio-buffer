@@ -106,7 +106,7 @@ function AudioBuffer (channels, data, sampleRate) {
 
 
 	//for browser - just return WAA buffer
-	if (isBrowser) {
+	if (AudioBuffer.isWAA) {
 		//create WAA buffer
 		var audioBuffer = AudioBuffer.context.createBuffer(this.numberOfChannels, this.length, this.sampleRate);
 
@@ -131,14 +131,12 @@ AudioBuffer.prototype.sampleRate = 44100;
 AudioBuffer.FloatArray = Float32Array;
 
 
-/** Create audio buffer from any argument */
-AudioBuffer.from = function (arg) {
-
-};
-
-
 /** Set context, though can be redefined */
 AudioBuffer.context = context;
+
+
+/** Whether WebAudioBuffer should be created */
+AudioBuffer.isWAA = isBrowser && context.createBuffer;
 
 
 /**

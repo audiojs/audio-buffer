@@ -44,6 +44,10 @@ AudioBuffer.FloatArray = Float32Array;
 //In browser, you can set the audio context (online/offline).
 //By default it is taken from audio-context module.
 AudioBuffer.context;
+
+//Whether WebAudioAPI Buffer should be created, if possible, instead of own instance
+//In browser it is true, if WAA is available.
+AudioBuffer.isWAA;
 ```
 
 ## Related
