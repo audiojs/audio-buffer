@@ -38,9 +38,10 @@
   },
   "homepage": "https://github.com/audio-lab/buffer",
   "dependencies": {
-    "buffer-to-arraybuffer": "^0.0",
-    "is-browser": "^2.0.1",
     "audio-context": "^0.1.0",
+    "buffer-to-arraybuffer": "^0.0",
+    "is-audio-buffer": "^1.0.1",
+    "is-browser": "^2.0.1",
     "is-buffer": "^1.1.0"
   },
   "devDependencies": {

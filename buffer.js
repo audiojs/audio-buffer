@@ -8,11 +8,7 @@
 var isBuffer = require('is-buffer');
 var b2ab = require('buffer-to-arraybuffer');
 var isBrowser = require('is-browser');
-
-
-/** Get system’s AudioBuffer */
-//FIXME: most probably no need in that, just in case of ponyfilling
-var WebAudioBuffer = isBrowser ? window.AudioBuffer : function(){};
+var isAudioBuffer = require('is-audio-buffer');
 
 
 
@@ -40,7 +36,7 @@ function AudioBuffer (channels, data, sampleRate) {
 
 	//if other audio buffer passed - create fast clone of it
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
-	if (data instanceof AudioBuffer || data instanceof WebAudioBuffer) {
+	if (isAudioBuffer(data)) {
 		this.data = [];
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;

@@ -589,6 +589,7 @@ it.skip('toArrayBuffer', function () {
 
 	var size = 1024, times = 1024;
 	var b = new Buffer(size);
+	b[0] = 1;
 	var a;
 
 	//cycle
