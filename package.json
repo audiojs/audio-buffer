@@ -19,7 +19,6 @@
     "index.js",
     "browser.js"
   ],
-  "browser": "browser.js",
   "keywords": [
     "audio",
     "pcm",
