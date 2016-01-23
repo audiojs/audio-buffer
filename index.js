@@ -23,7 +23,7 @@ function AudioBuffer (channels, data, sampleRate) {
 	//if one argument only - it is surely data or length
 	//having new AudioBuffer(2) does not make sense as 2 - number of channels
 	if (data == null) {
-		data = channels;
+		data = channels || 1;
 		channels = null;
 	}
 	//audioCtx.createBuffer() - complacent arguments
@@ -32,8 +32,7 @@ function AudioBuffer (channels, data, sampleRate) {
 		if (channels != null) this.numberOfChannels = channels;
 	}
 
-
-	//if number = create new array (spec's case - suppose that most widespread)
+	//if AudioBuffer(number) = create new array
 	if (typeof data === 'number') {
 		this.data = [];
 		for (var i = 0; i < this.numberOfChannels; i++ ) {
@@ -72,13 +71,13 @@ function AudioBuffer (channels, data, sampleRate) {
 	//if array - parse channeled data
 	else if (Array.isArray(data)) {
 		this.data = [];
-		//if separated data passed already
+		//if separated data passed already - spread subarrays by channels
 		if (data[0] instanceof Object) {
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
 				this.data.push(new AudioBuffer.FloatArray(data[i]));
 			}
 		}
-		//plain array passed
+		//plain array passed - split array equipartially
 		else {
 			var len = Math.floor(data.length / this.numberOfChannels);
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
@@ -90,12 +89,11 @@ function AudioBuffer (channels, data, sampleRate) {
 		}
 	}
 	//if ndarray, typedarray or other data-holder passed - redirect plain databuffer
-	else if (data.data || data.buffer) {
+	else if (data && (data.data || data.buffer)) {
 		return new AudioBuffer(this.numberOfChannels, data.data || data.buffer, this.sampleRate);
 	}
-	//if none passed (radical weird case), or no type detected
+	//if other - unable to parse arguments
 	else {
-		//it’d be strange use-case
 		throw Error('Failed to create buffer: check provided arguments');
 	}
 

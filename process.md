@@ -10,6 +10,18 @@
 
 ## Questions
 
+* Should we get rid of isWAA flag?
+	* + it makes difficulties for surely creating non-WAA audioBuffers. We can provide always non-WAA version and leave WAA-version up to user.
+		* - But how then user is supposed to use that buffer for AudioBufferSourceNode? How to convert?
+			* + Leave that up to audio-buffer-utils, 'from'?
+				* - But that is shit in browser-usage: `util.from(new AudioBuffer())` instead of simply `new AudioBuffer()`. Only the author will know that `util.from` converts (if possible) to WAAAudioBuffer. Same shit, different place.
+	* + place `buffer.js`, which is pure polyfill, and create `index.js` with constructor?
+		* - static properties, like `FloatArray` and `context` mess.
+		* - `./buffer` and `./` return various buffers, which is bad.
+	* + create `.from` method, returning pure buffer, and constructor, wrapping it to WAABuffer?
+		* - misleading functionality for browser users, it is publicly private method.
+		* + though it is pure method, returning same result, always.
+		* - we should not let in browser get access publicly to fake-buffer instances. So seems that ass-way via using technical flag `isWAA` is ok.
 * Should we transform data from interleaved to planar and from int to floar, if the passed format of data is weird?
 	* - ✔ delegate to pcm-util
 * Order of params - AudioBuffer(data, channels?, rate?) or AudioBuffer(channels, data, rate?)

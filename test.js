@@ -123,6 +123,16 @@ describe('Creation', function () {
 			assert.deepEqual(a.getChannelData(0), b.getChannelData(0));
 		}
 	});
+
+	it('minimal viable buffer', function () {
+		var a = new AudioBuffer();
+		assert.equal(a.length, 1);
+		assert.equal(a.numberOfChannels, 2);
+
+		var b = new AudioBuffer(2);
+		assert.equal(b.length, 2);
+		assert.equal(b.numberOfChannels, 2);
+	});
 });
 
 
@@ -130,11 +140,6 @@ describe('Params', function () {
 	it('duration', function () {
 		var buffer = new AudioBuffer(1, Array(441));
 		assert.equal(buffer.duration, 0.01);
-
-		assert.throws(function () {
-			var buffer = new AudioBuffer();
-			assert.equal(buffer.duration, 0);
-		});
 	});
 
 	it('length', function () {
