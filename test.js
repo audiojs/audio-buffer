@@ -74,10 +74,15 @@ describe('Creation', function () {
 	});
 
 	it('from Array of Arrays', function () {
-		var a = AudioBuffer( 3, [ [1, -1], [0.5,-0.5], [-1, 0.5] ] );
-		assert.deepEqual(a.getChannelData(2), [-1,0.5]);
+		var a = AudioBuffer(2, [ [1, -1], [0.5,-0.5], [-1, 0.5] ] );
 		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
 		assert.deepEqual(a.getChannelData(0), [1,-1]);
+		assert.deepEqual(a.getChannelData(2), undefined);
+
+		var a = AudioBuffer([ [1, -1], [0.5,-0.5], [-1, 0.5] ] );
+		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
+		assert.deepEqual(a.getChannelData(0), [1,-1]);
+		assert.deepEqual(a.getChannelData(2), [-1,0.5]);
 	});
 
 	if (isBrowser) it('from WAABuffer', function () {

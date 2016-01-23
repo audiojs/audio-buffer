@@ -73,6 +73,7 @@ function AudioBuffer (channels, data, sampleRate) {
 		this.data = [];
 		//if separated data passed already - spread subarrays by channels
 		if (data[0] instanceof Object) {
+			if (channels == null) this.numberOfChannels = data.length;
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
 				this.data.push(new AudioBuffer.FloatArray(data[i]));
 			}
