@@ -29,10 +29,12 @@ function AudioBuffer (channels, data, sampleRate) {
 	//audioCtx.createBuffer() - complacent arguments
 	else {
 		if (sampleRate != null) this.sampleRate = sampleRate;
+		else if (isBrowser) this.sampleRate = AudioBuffer.context.sampleRate;
 		if (channels != null) this.numberOfChannels = channels;
 	}
 
-	//if AudioBuffer(number) = create new array
+	//if AudioBuffer(channels?, number, rate?) = create new array
+	//this is the default WAA-compatible case
 	if (typeof data === 'number') {
 		this.data = [];
 		for (var i = 0; i < this.numberOfChannels; i++ ) {
@@ -118,14 +120,6 @@ function AudioBuffer (channels, data, sampleRate) {
 	}
 };
 
-
-/**
- * Default params
- */
-AudioBuffer.prototype.numberOfChannels = 2;
-AudioBuffer.prototype.sampleRate = 44100;
-
-
 /** Type of storage to use */
 AudioBuffer.FloatArray = Float32Array;
 
@@ -136,6 +130,13 @@ AudioBuffer.context = context;
 
 /** Whether WebAudioBuffer should be created */
 AudioBuffer.isWAA = isBrowser && context.createBuffer;
+
+
+/**
+ * Default params
+ */
+AudioBuffer.prototype.numberOfChannels = 2;
+AudioBuffer.prototype.sampleRate = AudioBuffer.context.sampleRate || 44100;
 
 
 /**
