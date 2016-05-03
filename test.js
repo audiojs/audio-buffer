@@ -77,7 +77,6 @@ describe('Creation', function () {
 		var a = AudioBuffer(2, [ [1, -1], [0.5,-0.5], [-1, 0.5] ] );
 		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
 		assert.deepEqual(a.getChannelData(0), [1,-1]);
-		if (!isBrowser) assert.deepEqual(a.getChannelData(2), undefined);
 
 		var a = AudioBuffer([ [1, -1], [0.5,-0.5], [-1, 0.5] ] );
 		assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);

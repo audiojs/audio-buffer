@@ -36,21 +36,21 @@ function AudioBuffer (channels, data, sampleRate) {
 	//if AudioBuffer(channels?, number, rate?) = create new array
 	//this is the default WAA-compatible case
 	if (typeof data === 'number') {
-		this.data = [];
-		for (var i = 0; i < this.numberOfChannels; i++ ) {
-			this.data.push(new AudioBuffer.FloatArray(data));
-		}
+		this.length = data;
+		this.data = new AudioBuffer.FloatArray(data * this.numberOfChannels);
 	}
 	//if other audio buffer passed - create fast clone of it
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
 	else if (isAudioBuffer(data)) {
-		this.data = [];
+		this.length = data.length;
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;
 
+		this.data = new AudioBuffer.FloatArray(this.length * this.numberOfChannels);
+
 		//copy channel's data
-		for (var i = 0, l = data.numberOfChannels; i < l; i++) {
-			this.data.push(data.getChannelData(i).slice());
+		for (var i = 0, l = this.numberOfChannels; i < l; i++) {
+			this.data.set(data.getChannelData(i), i * this.length);
 		}
 	}
 	//TypedArray, Buffer, DataView etc, or ArrayBuffer
@@ -63,32 +63,27 @@ function AudioBuffer (channels, data, sampleRate) {
 		if (!(data instanceof AudioBuffer.FloatArray)) {
 			data = new AudioBuffer.FloatArray(data.buffer || data);
 		}
-		var len = data.length / this.numberOfChannels;
-		for (var i = 0; i < this.numberOfChannels; i++ ) {
-			//NOTE: we could’ve done subarray here to create a reference, but...
-			//it will not be compatible with the WAA buffer - it cannot be a reference
-			this.data.push(data.slice(i* len, i * len + len));
-		}
+
+		this.length = data.length / this.numberOfChannels;
+		this.data = data;
 	}
 	//if array - parse channeled data
 	else if (Array.isArray(data)) {
-		this.data = [];
-		//if separated data passed already - spread subarrays by channels
+		//if separated data passed already - send sub-arrays to channels
 		if (data[0] instanceof Object) {
 			if (channels == null) this.numberOfChannels = data.length;
+			this.length = data[0].length;
+			this.data = new AudioBuffer.FloatArray(this.length * this.numberOfChannels);
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
-				this.data.push(new AudioBuffer.FloatArray(data[i]));
+				this.data.set(data[i], i * this.length);
 			}
 		}
 		//plain array passed - split array equipartially
 		else {
-			var len = Math.floor(data.length / this.numberOfChannels);
-			for (var i = 0; i < this.numberOfChannels; i++ ) {
-				var channelData = data.slice(i * len, i * len + len);
-				//force channel data be numeric
-				if (channelData[0] == null) channelData = len;
-				this.data.push(new AudioBuffer.FloatArray(channelData));
-			}
+			this.length = Math.floor(data.length / this.numberOfChannels);
+			//detect zero-arrays
+			if (data[0] == null) data = this.length;
+			this.data = new AudioBuffer.FloatArray(data);
 		}
 	}
 	//if ndarray, typedarray or other data-holder passed - redirect plain databuffer
@@ -99,11 +94,6 @@ function AudioBuffer (channels, data, sampleRate) {
 	else {
 		throw Error('Failed to create buffer: check provided arguments');
 	}
-
-
-	//set up params
-	this.length = this.data[0].length;
-	this.duration = this.length / this.sampleRate;
 
 
 	//for browser - just return WAA buffer
@@ -118,6 +108,8 @@ function AudioBuffer (channels, data, sampleRate) {
 
 		return audioBuffer;
 	}
+
+	this.duration = this.length / this.sampleRate;
 };
 
 /** Type of storage to use */
@@ -146,8 +138,9 @@ AudioBuffer.prototype.sampleRate = AudioBuffer.context.sampleRate || 44100;
  */
 AudioBuffer.prototype.getChannelData = function (channel) {
 	//FIXME: ponder on this, whether we really need that rigorous check, it may affect performance
-	if (channel > this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
-	return this.data[channel];
+	if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
+
+	return this.data.subarray(channel * this.length, (channel + 1) * this.length);
 };
 
 
@@ -155,10 +148,10 @@ AudioBuffer.prototype.getChannelData = function (channel) {
  * Place data to the destination buffer, starting from the position
  */
 AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, startInChannel) {
-	var data = this.data[channelNumber];
+	var offset = channelNumber * this.length;
 	if (startInChannel == null) startInChannel = 0;
-	for (var i = startInChannel, j = 0; i < data.length && j < destination.length; i++, j++) {
-		destination[j] = data[i];
+	for (var i = startInChannel, j = 0; i < this.length && j < destination.length; i++, j++) {
+		destination[j] = this.data[offset + i];
 	}
 };
 
@@ -168,12 +161,12 @@ AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, st
  * Clone of WAAudioBuffer
  */
 AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInChannel) {
-	var data = this.data[channelNumber];
+	var offset = channelNumber * this.length;
 
 	if (!startInChannel) startInChannel = 0;
 
 	for (var i = startInChannel, j = 0; i < this.length && j < source.length; i++, j++) {
-		data[i] = source[j];
+		this.data[offset + i] = source[j];
 	}
 };
 
