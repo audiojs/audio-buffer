@@ -37,9 +37,8 @@ buffer.copyToChannel(source, channelNumber, startInChannel?);
 
 //Some special properties, it’s unlikely you will ever need them.
 
-//Type of storage to use for data - replace to Float64Array, if needed.
-//It will only affect node implementation.
-AudioBuffer.FloatArray = Float32Array;
+//Type of array for data. Float64 is faster for last node/browsers.
+AudioBuffer.FloatArray = Float64Array;
 
 //In browser, you can set the audio context (online/offline).
 //By default it is taken from audio-context module.

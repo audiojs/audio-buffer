@@ -56,12 +56,11 @@ function AudioBuffer (channels, data, sampleRate) {
 	//TypedArray, Buffer, DataView etc, or ArrayBuffer
 	//NOTE: node 4.x+ detects Buffer as ArrayBuffer view
 	else if (ArrayBuffer.isView(data) || data instanceof ArrayBuffer || isBuffer(data)) {
-		this.data = [];
 		if (isBuffer(data)) {
 			data = b2ab(data);
 		}
 		if (!(data instanceof AudioBuffer.FloatArray)) {
-			data = new AudioBuffer.FloatArray(data.buffer || data);
+			data = new AudioBuffer.FloatArray(new Float32Array(data.buffer || data));
 		}
 
 		this.length = data.length / this.numberOfChannels;
@@ -113,7 +112,7 @@ function AudioBuffer (channels, data, sampleRate) {
 };
 
 /** Type of storage to use */
-AudioBuffer.FloatArray = Float32Array;
+AudioBuffer.FloatArray = typeof Float64Array === 'undefined' ? Float32Array : Float64Array;
 
 
 /** Set context, though can be redefined */
