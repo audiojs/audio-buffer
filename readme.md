@@ -1,5 +1,7 @@
 [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) optimal implementation for node. In browser provides just a useful constructor for web-audio’s _AudioBuffer_, in node is also useful instead of _Buffer_ in audio streams.
 
+[![build status](https://img.shields.io/travis/audiojs/audio-buffer.svg)](https://travis-ci.org/audiojs/audio-buffer)
+![stability-stable](https://img.shields.io/badge/stability-stable-green.svg)
 
 ## Usage
 

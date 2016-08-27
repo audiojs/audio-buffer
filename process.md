@@ -22,7 +22,7 @@
 		* - misleading functionality for browser users, it is publicly private method.
 		* + though it is pure method, returning same result, always.
 		* - we should not let in browser get access publicly to fake-buffer instances. So seems that ass-way via using technical flag `isWAA` is ok.
-* Should we transform data from interleaved to planar and from int to floar, if the passed format of data is weird?
+* Should we transform data from interleaved to planar and from int to float, if the passed format of data is weird?
 	* - ✔ delegate to pcm-util
 * Order of params - AudioBuffer(data, channels?, rate?) or AudioBuffer(channels, data, rate?)
 	* + first is intuitive, but unnatural if channel number is not passed
