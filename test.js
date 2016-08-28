@@ -1,3 +1,5 @@
+'use strict';
+
 var AudioBuffer = require('./');
 var assert = require('assert');
 var now = require('performance-now');

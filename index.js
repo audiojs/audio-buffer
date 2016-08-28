@@ -3,7 +3,7 @@
  *
  * @module audio-buffer/buffer
  */
-
+'use strict';
 
 var isBuffer = require('is-buffer');
 var b2ab = require('buffer-to-arraybuffer');
