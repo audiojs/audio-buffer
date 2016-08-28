@@ -14,11 +14,6 @@
     "type": "git",
     "url": "https://github.com/audiojs/audio-buffer"
   },
-  "files": [
-    "buffer.js",
-    "index.js",
-    "browser.js"
-  ],
   "keywords": [
     "audio",
     "audiojs",
