@@ -53,9 +53,13 @@ AudioBuffer.context;
 AudioBuffer.isWAA;
 ```
 
-## Related
+## See also
 
+* [audio-buffer-utils](https://github.com/audiojs/audio-buffer-utils) — utils for audio buffers
 * [pcm-util](https://npmjs.org/package/pcm-util) — utils for audio format convertions.
+
+## Similar
+
 * [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays. A somewhat alternative approach to wrap audio data, based on ndarrays, used by some modules in [livejs](https://github.com/livejs).
 * [1](https://www.npmjs.com/package/audiobuffer), [2](https://www.npmjs.com/package/audio-buffer), [3](https://github.com/sebpiq/node-web-audio-api/blob/master/lib/AudioBuffer.js), [4](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) — other AudioBuffer implementations.
 * [audiodata](https://www.npmjs.com/package/audiodata) alternative data holder from @mohayonao.
