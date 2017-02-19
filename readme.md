@@ -2,55 +2,50 @@
 
 [AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) optimal implementation for node. In browser provides just a useful constructor for web-audio’s _AudioBuffer_, in node is also useful instead of _Buffer_ in audio streams.
 
-[![build status](https://img.shields.io/travis/audiojs/audio-buffer.svg)](https://travis-ci.org/audiojs/audio-buffer)
-![stability-stable](https://img.shields.io/badge/stability-stable-green.svg)
-
 ## Usage
 
 [![npm install audio-buffer](https://nodei.co/npm/audio-buffer.png?mini=true)](https://npmjs.org/package/audio-buffer/)
 
 ```js
-var AudioBuffer = require('audio-buffer');
+var AudioBuffer = require('audio-buffer')
 
 //Create audio buffer from a data source or of a length.
 //Data is interpreted as a planar sequence of float32 samples.
 //It can be Array, TypedArray, ArrayBuffer, Buffer, AudioBuffer, DataView, NDArray etc.
-var buffer = new AudioBuffer(channels?, data|length, sampleRate?);
+var buffer = new AudioBuffer(channels = 2, data|length, sampleRate = 44100)
 
 //Duration of the underlying audio data, in seconds
-buffer.duration;
+buffer.duration
 
 //Number of samples per channel
-buffer.length;
+buffer.length
 
 //Default sample rate is 44100
-buffer.sampleRate;
+buffer.sampleRate
 
 //Default number of channels is 2
-buffer.numberOfChannels;
+buffer.numberOfChannels
 
 //Get array containing the data for the channel (not copied)
-buffer.getChannelData(channel);
+buffer.getChannelData(channel)
 
 //Place data from channel to destination Float32Array
-buffer.copyFromChannel(destination, channelNumber, startInChannel?);
+buffer.copyFromChannel(destination, channelNumber, startInChannel = 0)
 
 //Place data from source Float32Array to the channel
-buffer.copyToChannel(source, channelNumber, startInChannel?);
+buffer.copyToChannel(source, channelNumber, startInChannel = 0)
 
 
 //Some special properties, it’s unlikely you will ever need them.
 
-//Type of array for data. Float64 is faster for last node/browsers.
-AudioBuffer.FloatArray = Float64Array;
+//Type of array for data. Float64Array is faster for modern node/browsers.
+AudioBuffer.FloatArray = Float64Array
 
-//In browser, you can set the audio context (online/offline).
-//By default it is taken from audio-context module.
-AudioBuffer.context;
+//In browser, you can set custom audio context (online/offline).
+AudioBuffer.context = require('audio-context')
 
-//Whether WebAudioAPI Buffer should be created, if possible, instead of own instance
-//In browser it is true, if WAA is available.
-AudioBuffer.isWAA;
+//Whether WebAudioAPI AudioBuffer should be created, if avail, instead of polyfilled structure
+AudioBuffer.isWAA = true
 ```
 
 ## See also
