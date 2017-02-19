@@ -35,7 +35,7 @@
   "dependencies": {
     "audio-context": "latest",
     "buffer-to-arraybuffer": "latest",
-    "is-audio-buffer": "^1.0.1",
+    "is-audio-buffer": "^1.0.2",
     "is-browser": "^2.0.1",
     "is-buffer": "^1.1.0"
   },
