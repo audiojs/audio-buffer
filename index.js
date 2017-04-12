@@ -3,13 +3,21 @@
  *
  * @module audio-buffer/buffer
  */
-'use strict';
+'use strict'
 
-var isBuffer = require('is-buffer');
-var b2ab = require('buffer-to-arraybuffer');
-var isBrowser = require('is-browser');
-var isAudioBuffer = require('is-audio-buffer');
-var context = require('audio-context');
+var isBuffer = require('is-buffer')
+var b2ab = require('buffer-to-arraybuffer')
+var isBrowser = require('is-browser')
+var isAudioBuffer = require('is-audio-buffer')
+var context = require('audio-context')
+var isPlainObj = require('is-plain-obj')
+
+
+module.exports = AudioBuffer
+
+
+/** Type of storage to use */
+var FloatArray = typeof Float64Array === 'undefined' ? Float32Array : Float64Array;
 
 
 /**
@@ -17,19 +25,38 @@ var context = require('audio-context');
  *
  * @param {∀} data Any collection-like object
  */
-function AudioBuffer (channels, data, sampleRate) {
-	if (!(this instanceof AudioBuffer)) return new AudioBuffer(channels, data, sampleRate);
+function AudioBuffer (channels, data, sampleRate, options) {
+	//enforce class
+	if (!(this instanceof AudioBuffer)) return new AudioBuffer(channels, data, sampleRate, options);
+
+	//detect last argument
+	var c = arguments.length
+	while (!arguments[c] && c) c--;
+	var last = arguments[c];
+
+	//figure out options
+	var ctx, isWAA, floatArray
+	if (last && typeof last != 'number') {
+		ctx = last.context || context
+		isWAA = last.isWAA != null ? last.isWAA : !!(isBrowser && context.createBuffer)
+		floatArray = last.floatArray || FloatArray
+	}
+	else {
+		ctx = context
+		isWAA = false
+		floatArray = FloatArray
+	}
 
 	//if one argument only - it is surely data or length
-	//having new AudioBuffer(2) does not make sense as 2 - number of channels
-	if (data == null) {
+	//having new AudioBuffer(2) does not make sense as 2 being number of channels
+	if (data == null || isPlainObj(data)) {
 		data = channels || 1;
 		channels = null;
 	}
 	//audioCtx.createBuffer() - complacent arguments
 	else {
-		if (sampleRate != null) this.sampleRate = sampleRate;
-		else if (isBrowser) this.sampleRate = AudioBuffer.context.sampleRate;
+		if (typeof sampleRate == 'number') this.sampleRate = sampleRate;
+		else if (isBrowser) this.sampleRate = ctx.sampleRate;
 		if (channels != null) this.numberOfChannels = channels;
 	}
 
@@ -37,7 +64,7 @@ function AudioBuffer (channels, data, sampleRate) {
 	//this is the default WAA-compatible case
 	if (typeof data === 'number') {
 		this.length = data;
-		this.data = new AudioBuffer.FloatArray(data * this.numberOfChannels);
+		this.data = new floatArray(data * this.numberOfChannels);
 	}
 	//if other audio buffer passed - create fast clone of it
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
@@ -46,7 +73,7 @@ function AudioBuffer (channels, data, sampleRate) {
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;
 
-		this.data = new AudioBuffer.FloatArray(this.length * this.numberOfChannels);
+		this.data = new floatArray(this.length * this.numberOfChannels);
 
 		//copy channel's data
 		for (var i = 0, l = this.numberOfChannels; i < l; i++) {
@@ -59,8 +86,9 @@ function AudioBuffer (channels, data, sampleRate) {
 		if (isBuffer(data)) {
 			data = b2ab(data);
 		}
-		if (!(data instanceof AudioBuffer.FloatArray)) {
-			data = new AudioBuffer.FloatArray(new Float32Array(data.buffer || data));
+		//convert non-float array to floatArray
+		if (!(data instanceof Float32Array) && !(data instanceof Float64Array)) {
+			data = new floatArray(data.buffer || data);
 		}
 
 		this.length = data.length / this.numberOfChannels;
@@ -72,7 +100,7 @@ function AudioBuffer (channels, data, sampleRate) {
 		if (data[0] instanceof Object) {
 			if (channels == null) this.numberOfChannels = data.length;
 			this.length = data[0].length;
-			this.data = new AudioBuffer.FloatArray(this.length * this.numberOfChannels);
+			this.data = new floatArray(this.length * this.numberOfChannels);
 			for (var i = 0; i < this.numberOfChannels; i++ ) {
 				this.data.set(data[i], i * this.length);
 			}
@@ -82,7 +110,7 @@ function AudioBuffer (channels, data, sampleRate) {
 			this.length = Math.floor(data.length / this.numberOfChannels);
 			//detect zero-arrays
 			if (data[0] == null) data = this.length;
-			this.data = new AudioBuffer.FloatArray(data);
+			this.data = new floatArray(data);
 		}
 	}
 	//if ndarray, typedarray or other data-holder passed - redirect plain databuffer
@@ -95,10 +123,10 @@ function AudioBuffer (channels, data, sampleRate) {
 	}
 
 
-	//for browser - just return WAA buffer
-	if (AudioBuffer.isWAA) {
+	//for browser - return WAA buffer, no sub-buffering allowed
+	if (isWAA) {
 		//create WAA buffer
-		var audioBuffer = AudioBuffer.context.createBuffer(this.numberOfChannels, this.length, this.sampleRate);
+		var audioBuffer = ctx.createBuffer(this.numberOfChannels, this.length, this.sampleRate);
 
 		//fill channels
 		for (var i = 0; i < this.numberOfChannels; i++) {
@@ -109,25 +137,14 @@ function AudioBuffer (channels, data, sampleRate) {
 	}
 
 	this.duration = this.length / this.sampleRate;
-};
-
-/** Type of storage to use */
-AudioBuffer.FloatArray = typeof Float64Array === 'undefined' ? Float32Array : Float64Array;
-
-
-/** Set context, though can be redefined */
-AudioBuffer.context = context;
-
-
-/** Whether WebAudioBuffer should be created */
-AudioBuffer.isWAA = isBrowser && context.createBuffer;
+}
 
 
 /**
  * Default params
  */
 AudioBuffer.prototype.numberOfChannels = 2;
-AudioBuffer.prototype.sampleRate = AudioBuffer.context.sampleRate || 44100;
+AudioBuffer.prototype.sampleRate = context.sampleRate || 44100;
 
 
 /**
@@ -169,5 +186,3 @@ AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInCh
 	}
 };
 
-
-module.exports = AudioBuffer;

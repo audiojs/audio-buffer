@@ -4,9 +4,8 @@
   "description": "Audio data container",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "test:browser": "beefy --index=test.html test.js",
-    "watch": "watchify test.js -d -o bundle.js",
+    "test": "node test",
+    "test:browser": "budo test",
     "benchmark": "mocha benchmark.js",
     "benchmark:browser": "beefy --index=benchmark.html benchmark.js"
   },
@@ -37,7 +36,8 @@
     "buffer-to-arraybuffer": "latest",
     "is-audio-buffer": "^1.0.1",
     "is-browser": "^2.0.1",
-    "is-buffer": "^1.1.0"
+    "is-buffer": "^1.1.0",
+    "is-plain-obj": "^1.1.0"
   },
   "devDependencies": {
     "arr-flatten": "^1.0.1",
@@ -46,12 +46,12 @@
     "inherits": "^2.0.1",
     "is-typedarray": "^1.0.0",
     "isndarray": "^1.0.0",
-    "mocha": "^3.0.2",
     "ndarray": "^1.0.18",
     "ndarray-fill": "^1.0.1",
     "ndarray-unpack": "^1.0.0",
     "pcm-util": "^2.0.2",
     "performance-now": "^0.2.0",
+    "tape": "^4.6.3",
     "xtend": "^4.0.1"
   }
 }

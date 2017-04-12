@@ -12,7 +12,7 @@ var AudioBuffer = require('audio-buffer')
 //Create audio buffer from a data source or of a length.
 //Data is interpreted as a planar sequence of float32 samples.
 //It can be Array, TypedArray, ArrayBuffer, Buffer, AudioBuffer, DataView, NDArray etc.
-var buffer = new AudioBuffer(channels = 2, data|length, sampleRate = 44100)
+var buffer = new AudioBuffer(channels = 2, data|length, sampleRate = 44100, options?)
 
 //Duration of the underlying audio data, in seconds
 buffer.duration
@@ -35,18 +35,15 @@ buffer.copyFromChannel(destination, channelNumber, startInChannel = 0)
 //Place data from source Float32Array to the channel
 buffer.copyToChannel(source, channelNumber, startInChannel = 0)
 
-
-//Some special properties, it’s unlikely you will ever need them.
-
-//Type of array for data. Float64Array is faster for modern node/browsers.
-AudioBuffer.FloatArray = Float64Array
-
-//In browser, you can set custom audio context (online/offline).
-AudioBuffer.context = require('audio-context')
-
-//Whether WebAudioAPI AudioBuffer should be created, if avail, instead of polyfilled structure
-AudioBuffer.isWAA = true
 ```
+
+## Options
+
+Options object can be passed as last argument with the following:
+
+* `floatArray` — type of array for data, defaults to `Float64Array`.
+* `context`: custom audio context, default context is [audio-context](https://npmjs.org/package/audio-context) module.
+* `isWAA` — if WebAudioAPI _AudioBuffer_ should be created. Use `false` for emulated buffers - in nodejs that is always false. That can be handy in case if you need to create buffer from subarrays to avoid cloning the data.
 
 ## See also
 
