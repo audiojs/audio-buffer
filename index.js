@@ -16,10 +16,6 @@ var isPlainObj = require('is-plain-obj')
 module.exports = AudioBuffer
 
 
-/** Type of storage to use */
-var FloatArray = typeof Float64Array === 'undefined' ? Float32Array : Float64Array;
-
-
 /**
  * @constructor
  *
@@ -39,13 +35,13 @@ function AudioBuffer (channels, data, sampleRate, options) {
 	if (last && typeof last != 'number') {
 		ctx = last.context || context
 		isWAA = last.isWAA != null ? last.isWAA : !!(isBrowser && context.createBuffer)
-		floatArray = last.floatArray || FloatArray
+		floatArray = last.floatArray || Float32Array
 		if (last.floatArray) isForcedType = true
 	}
 	else {
 		ctx = context
 		isWAA = false
-		floatArray = FloatArray
+		floatArray = Float32Array
 	}
 
 	//if one argument only - it is surely data or length
@@ -95,7 +91,7 @@ function AudioBuffer (channels, data, sampleRate, options) {
 			data = new floatArray(data.buffer || data);
 		}
 
-		this.length = data.length / this.numberOfChannels;
+		this.length = Math.floor(data.length / this.numberOfChannels);
 		this.data = []
 		for (var c = 0; c < this.numberOfChannels; c++) {
 			this.data[c] = data.subarray(c * this.length, (c + 1) * this.length);

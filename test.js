@@ -151,7 +151,7 @@ t('subbuffer', function (t) {
 	var a = new AudioBuffer(1, [0, .1, .2, .3], {isWAA: false})
 	var b = new AudioBuffer(1, [a.getChannelData(0).subarray(1,2)], {isWAA: false})
 	b.getChannelData(0)[0] = .4
-	assert.deepEqual(a.getChannelData(0), [0, .4, .2, .3])
+	assert.deepEqual(a.getChannelData(0), new Float32Array([0, .4, .2, .3]))
 	t.end()
 })
 
