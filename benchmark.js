@@ -269,7 +269,7 @@ describe.skip('Buffer stream vs object stream vs functions', function () {
 
 
 
-	//Results, in order of tests: Buffer stream, Object stream, Fn chain
+	//Results in ms, in order of tests: Buffer stream, Object stream, Fn chain
 
 	//Noop
 	//700 vs 400 vs 150 in browser

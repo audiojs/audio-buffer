@@ -42,8 +42,15 @@ buffer.copyToChannel(source, channelNumber, startInChannel = 0)
 Options object can be passed as last argument with the following:
 
 * `floatArray` — type of array for data, defaults to `Float64Array`.
-* `context`: custom audio context, default context is [audio-context](https://npmjs.org/package/audio-context) module.
-* `isWAA` — if WebAudioAPI _AudioBuffer_ should be created. Use `false` for emulated buffers - in nodejs that is always false. That can be handy in case if you need to create buffer from subarrays to avoid cloning the data.
+* `context` — custom audio context, default context is [audio-context](https://npmjs.org/package/audio-context) module.
+* `isWAA` — if WebAudioAPI _AudioBuffer_ should be created. Use `false` for emulated buffers - in nodejs that is always false. That can be handy in case if you need to create buffer from subarrays to avoid cloning the data, like so:
+
+```js
+var a = new AudioBuffer(1, [0, .1, .2, .3], {isWAA: false})
+var b = new AudioBuffer(1, [a.getChannelData(0).subarray(1,2)], {isWAA: false})
+b.getChannelData(0)[0] = .4
+a.getChannelData(0) // [0, .4, .2, .3]
+```
 
 ## See also
 

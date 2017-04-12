@@ -35,11 +35,12 @@ function AudioBuffer (channels, data, sampleRate, options) {
 	var last = arguments[c];
 
 	//figure out options
-	var ctx, isWAA, floatArray
+	var ctx, isWAA, floatArray, isForcedType = false
 	if (last && typeof last != 'number') {
 		ctx = last.context || context
 		isWAA = last.isWAA != null ? last.isWAA : !!(isBrowser && context.createBuffer)
 		floatArray = last.floatArray || FloatArray
+		if (last.floatArray) isForcedType = true
 	}
 	else {
 		ctx = context
@@ -64,7 +65,10 @@ function AudioBuffer (channels, data, sampleRate, options) {
 	//this is the default WAA-compatible case
 	if (typeof data === 'number') {
 		this.length = data;
-		this.data = new floatArray(data * this.numberOfChannels);
+		this.data = []
+		for (var c = 0; c < this.numberOfChannels; c++) {
+			this.data[c] = new floatArray(data)
+		}
 	}
 	//if other audio buffer passed - create fast clone of it
 	//if WAA AudioBuffer - get buffer’s data (it is bounded)
@@ -73,11 +77,11 @@ function AudioBuffer (channels, data, sampleRate, options) {
 		if (channels == null) this.numberOfChannels = data.numberOfChannels;
 		if (sampleRate == null) this.sampleRate = data.sampleRate;
 
-		this.data = new floatArray(this.length * this.numberOfChannels);
+		this.data = []
 
 		//copy channel's data
-		for (var i = 0, l = this.numberOfChannels; i < l; i++) {
-			this.data.set(data.getChannelData(i), i * this.length);
+		for (var c = 0, l = this.numberOfChannels; c < l; c++) {
+			this.data[c] = data.getChannelData(c).slice()
 		}
 	}
 	//TypedArray, Buffer, DataView etc, or ArrayBuffer
@@ -92,7 +96,10 @@ function AudioBuffer (channels, data, sampleRate, options) {
 		}
 
 		this.length = data.length / this.numberOfChannels;
-		this.data = data;
+		this.data = []
+		for (var c = 0; c < this.numberOfChannels; c++) {
+			this.data[c] = data.subarray(c * this.length, (c + 1) * this.length);
+		}
 	}
 	//if array - parse channeled data
 	else if (Array.isArray(data)) {
@@ -100,17 +107,18 @@ function AudioBuffer (channels, data, sampleRate, options) {
 		if (data[0] instanceof Object) {
 			if (channels == null) this.numberOfChannels = data.length;
 			this.length = data[0].length;
-			this.data = new floatArray(this.length * this.numberOfChannels);
-			for (var i = 0; i < this.numberOfChannels; i++ ) {
-				this.data.set(data[i], i * this.length);
+			this.data = []
+			for (var c = 0; c < this.numberOfChannels; c++ ) {
+				this.data[c] = !isForcedType || (data[c] instanceof floatArray) ? data[c] : new floatArray(data[c])
 			}
 		}
 		//plain array passed - split array equipartially
 		else {
 			this.length = Math.floor(data.length / this.numberOfChannels);
-			//detect zero-arrays
-			if (data[0] == null) data = this.length;
-			this.data = new floatArray(data);
+			this.data = []
+			for (var c = 0; c < this.numberOfChannels; c++) {
+				this.data[c] = new floatArray(data.slice(c * this.length, (c + 1) * this.length))
+			}
 		}
 	}
 	//if ndarray, typedarray or other data-holder passed - redirect plain databuffer
@@ -129,8 +137,8 @@ function AudioBuffer (channels, data, sampleRate, options) {
 		var audioBuffer = ctx.createBuffer(this.numberOfChannels, this.length, this.sampleRate);
 
 		//fill channels
-		for (var i = 0; i < this.numberOfChannels; i++) {
-			audioBuffer.getChannelData(i).set(this.getChannelData(i));
+		for (var c = 0; c < this.numberOfChannels; c++) {
+			audioBuffer.getChannelData(c).set(this.getChannelData(c));
 		}
 
 		return audioBuffer;
@@ -156,7 +164,7 @@ AudioBuffer.prototype.getChannelData = function (channel) {
 	//FIXME: ponder on this, whether we really need that rigorous check, it may affect performance
 	if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
 
-	return this.data.subarray(channel * this.length, (channel + 1) * this.length);
+	return this.data[channel]
 };
 
 
@@ -164,10 +172,10 @@ AudioBuffer.prototype.getChannelData = function (channel) {
  * Place data to the destination buffer, starting from the position
  */
 AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, startInChannel) {
-	var offset = channelNumber * this.length;
 	if (startInChannel == null) startInChannel = 0;
+	var data = this.data[channelNumber]
 	for (var i = startInChannel, j = 0; i < this.length && j < destination.length; i++, j++) {
-		destination[j] = this.data[offset + i];
+		destination[j] = data[i];
 	}
 };
 
@@ -177,12 +185,12 @@ AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, st
  * Clone of WAAudioBuffer
  */
 AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInChannel) {
-	var offset = channelNumber * this.length;
+	var data = this.data[channelNumber]
 
 	if (!startInChannel) startInChannel = 0;
 
 	for (var i = startInChannel, j = 0; i < this.length && j < source.length; i++, j++) {
-		this.data[offset + i] = source[j];
+		data[i] = source[j];
 	}
 };
 

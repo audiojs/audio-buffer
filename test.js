@@ -18,7 +18,7 @@ t('from Array', function (t) {
 
 	assert.deepEqual(buffer.getChannelData(0), [0, 1, 0]);
 	assert.deepEqual(buffer.getChannelData(1), [1, 0, 1]);
-t.end()
+	t.end()
 });
 
 t('params edge case', function (t) {
@@ -27,7 +27,7 @@ t('params edge case', function (t) {
 
 	var b = new AudioBuffer(2, {isWAA: false})
 	assert.deepEqual(b.length, 2)
-t.end()
+	t.end()
 });
 
 t('from Float32Array', function (t) {
@@ -38,7 +38,7 @@ t('from Float32Array', function (t) {
 	assert.deepEqual(buffer.getChannelData(0), [0, 1, 0]);
 	assert.deepEqual(buffer.getChannelData(1), [1, 0, 1]);
 	assert.deepEqual(buffer.getChannelData(2), [0, 1, 0]);
-t.end()
+	t.end()
 });
 
 t('from Buffer', function (t) {
@@ -55,7 +55,7 @@ t('from Buffer', function (t) {
 	assert.deepEqual(buffer.getChannelData(0), [1, -1.0]);
 	assert.deepEqual(buffer.getChannelData(1), [0.5, -0.5]);
 	assert.deepEqual(buffer.getChannelData(2), [-1, 0.5]);
-t.end()
+	t.end()
 });
 
 t('from AudioBuffer', function (t) {
@@ -70,14 +70,14 @@ t('from AudioBuffer', function (t) {
 	a1.getChannelData(0)[0] = 0;
 	assert.deepEqual(a1.getChannelData(0), [0,-1]);
 	assert.deepEqual(a2.getChannelData(0), [1,-1]);
-t.end()
+	t.end()
 });
 
 t('from ArrayBuffer', function (t) {
 	var a = AudioBuffer( (new Float32Array([1,-1,0.5,-0.5])).buffer, {floatArray: Float32Array} );
 	assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
 	assert.deepEqual(a.getChannelData(0), [1,-1]);
-t.end()
+	t.end()
 });
 
 t('from NDArray', function (t) {
@@ -86,7 +86,7 @@ t('from NDArray', function (t) {
 	assert.deepEqual(a.getChannelData(0), [1,-1]);
 
 	//FIXME: there might need more tests, like detection of ndarray dimensions etc
-t.end()
+	t.end()
 });
 
 t('from Array of Arrays', function (t) {
@@ -98,7 +98,7 @@ t('from Array of Arrays', function (t) {
 	assert.deepEqual(a.getChannelData(1), [0.5,-0.5]);
 	assert.deepEqual(a.getChannelData(0), [1,-1]);
 	assert.deepEqual(a.getChannelData(2), [-1,0.5]);
-t.end()
+	t.end()
 });
 
 if (isBrowser) t('from WAABuffer', function (t) {
@@ -118,7 +118,7 @@ if (isBrowser) t('from WAABuffer', function (t) {
 	// buf.getChannelData(2).fill(0.5);
 	// assert.deepEqual(a.getChannelData(2), buf.getChannelData(2));
 
-t.end()
+	t.end()
 });
 
 t('clone', function (t) {
@@ -144,12 +144,16 @@ t('clone', function (t) {
 		assert.notEqual(a.getChannelData(0), b.getChannelData(0));
 		assert.deepEqual(a.getChannelData(0), b.getChannelData(0));
 	}
-t.end()
+	t.end()
 });
 
-// t('subbuffer', function (t) {
-
-// })
+t('subbuffer', function (t) {
+	var a = new AudioBuffer(1, [0, .1, .2, .3], {isWAA: false})
+	var b = new AudioBuffer(1, [a.getChannelData(0).subarray(1,2)], {isWAA: false})
+	b.getChannelData(0)[0] = .4
+	assert.deepEqual(a.getChannelData(0), [0, .4, .2, .3])
+	t.end()
+})
 
 t('minimal viable buffer', function (t) {
 	var a = new AudioBuffer();
@@ -159,13 +163,13 @@ t('minimal viable buffer', function (t) {
 	var b = new AudioBuffer(2);
 	assert.equal(b.length, 2);
 	assert.equal(b.numberOfChannels, 2);
-t.end()
+	t.end()
 });
 
 t('duration', function (t) {
 	var buffer = new AudioBuffer(1, Array(441));
 	assert.equal(buffer.duration, 0.01);
-t.end()
+	t.end()
 });
 
 t('length', function (t) {
@@ -179,7 +183,7 @@ t('length', function (t) {
 	assert.equal(buffer.length, 3);
 	var buffer = new AudioBuffer(6, Array(12));
 	assert.equal(buffer.length, 2);
-t.end()
+	t.end()
 });
 
 t('sampleRate', function (t) {
@@ -188,14 +192,14 @@ t('sampleRate', function (t) {
 
 	var buffer = new AudioBuffer(1, Array(441), 44100*2);
 	assert.equal(buffer.duration, 0.005);
-t.end()
+	t.end()
 });
 
-t('getChannelData', function (t) {
-	var buffer = new AudioBuffer(1, Array(4));
+t('getChannelData empty arrays', function (t) {
+	var buffer = new AudioBuffer(1, Array(4).fill(0));
 
 	assert.deepEqual(buffer.getChannelData(0), [0,0,0,0]);
-t.end()
+	t.end()
 });
 
 t('copyToChannel', function (t) {
@@ -214,7 +218,7 @@ t('copyToChannel', function (t) {
 	arr.set(zeros);
 
 	assert.deepEqual(arr, a.getChannelData(1));
-t.end()
+	t.end()
 });
 
 t('copyFromChannel', function (t) {
@@ -232,6 +236,6 @@ t('copyFromChannel', function (t) {
 	var fixture = Array(10).fill(0.5).concat(Array(30).fill(-0.5));
 
 	assert.deepEqual(arr, fixture);
-t.end()
+	t.end()
 });
 
