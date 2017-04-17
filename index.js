@@ -105,7 +105,7 @@ function AudioBuffer (channels, data, sampleRate, options) {
 			this.length = data[0].length;
 			this.data = []
 			for (var c = 0; c < this.numberOfChannels; c++ ) {
-				this.data[c] = !isForcedType || (data[c] instanceof floatArray) ? data[c] : new floatArray(data[c])
+				this.data[c] = (!isForcedType && ((data[c] instanceof Float32Array) || (data[c] instanceof Float64Array))) ? data[c] : new floatArray(data[c])
 			}
 		}
 		//plain array passed - split array equipartially
@@ -173,7 +173,7 @@ AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, st
 	for (var i = startInChannel, j = 0; i < this.length && j < destination.length; i++, j++) {
 		destination[j] = data[i];
 	}
-};
+}
 
 
 /**
