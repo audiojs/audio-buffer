@@ -158,7 +158,7 @@ AudioBuffer.prototype.sampleRate = context.sampleRate || 44100;
  */
 AudioBuffer.prototype.getChannelData = function (channel) {
 	//FIXME: ponder on this, whether we really need that rigorous check, it may affect performance
-	if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
+	if (channel > this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
 
 	return this.data[channel]
 };
