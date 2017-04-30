@@ -34,7 +34,7 @@ function AudioBuffer (channels, data, sampleRate, options) {
 	var ctx, isWAA, floatArray, isForcedType = false
 	if (lastArg && typeof lastArg != 'number') {
 		ctx = lastArg.context || (context && context())
-		isWAA = lastArg.isWAA != null ? lastArg.isWAA : !!(isBrowser && context.createBuffer)
+		isWAA = lastArg.isWAA != null ? lastArg.isWAA : !!(isBrowser && ctx.createBuffer)
 		floatArray = lastArg.floatArray || Float32Array
 		if (lastArg.floatArray) isForcedType = true
 	}
