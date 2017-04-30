@@ -7,7 +7,7 @@ var pcm = require('pcm-util');
 var extend = require('xtend/mutable');
 var stream = require('stream');
 var NDArray = require('ndarray');
-var ctx = require('audio-context');
+var ctx = require('audio-context')();
 var isBrowser = require('is-browser');
 var t = require('tape')
 
@@ -114,7 +114,6 @@ t('from Array of Arrays', function (t) {
 
 if (isBrowser) t('from WAABuffer', function (t) {
 	var buf = ctx.createBuffer(3, 2, 44100);
-
 	buf.getChannelData(0).fill(1);
 	buf.getChannelData(1).fill(-1);
 	buf.getChannelData(2).fill(0);
@@ -124,6 +123,9 @@ if (isBrowser) t('from WAABuffer', function (t) {
 	t.deepEqual(a.getChannelData(1), [-1,-1]);
 	t.deepEqual(a.getChannelData(0), [1,1]);
 
+	t.throws(function () {
+		AudioBuffer(2, 0)
+	})
 	//test that data is bound
 	//NOTE: it seems that is shouldn’t - we can gracefully clone the buffer
 	// buf.getChannelData(2).fill(0.5);

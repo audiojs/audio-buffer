@@ -28,19 +28,19 @@ function AudioBuffer (channels, data, sampleRate, options) {
 	//detect last argument
 	var c = arguments.length
 	while (!arguments[c] && c) c--;
-	var last = arguments[c];
+	var lastArg = arguments[c];
 
 	//figure out options
 	var ctx, isWAA, floatArray, isForcedType = false
-	if (last && typeof last != 'number') {
-		ctx = last.context || context
-		isWAA = last.isWAA != null ? last.isWAA : !!(isBrowser && context.createBuffer)
-		floatArray = last.floatArray || Float32Array
-		if (last.floatArray) isForcedType = true
+	if (lastArg && typeof lastArg != 'number') {
+		ctx = lastArg.context || (context && context())
+		isWAA = lastArg.isWAA != null ? lastArg.isWAA : !!(isBrowser && context.createBuffer)
+		floatArray = lastArg.floatArray || Float32Array
+		if (lastArg.floatArray) isForcedType = true
 	}
 	else {
-		ctx = context
-		isWAA = false
+		ctx = context && context()
+		isWAA = !!ctx
 		floatArray = Float32Array
 	}
 
