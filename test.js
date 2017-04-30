@@ -21,6 +21,14 @@ t('from Array', function (t) {
 	t.end()
 });
 
+t('from Number', function (t) {
+	var buffer = new AudioBuffer(2, 2)
+
+	t.equal(buffer.length, 2)
+
+	t.end()
+})
+
 t('params edge case', function (t) {
 	var a = AudioBuffer(2, {isWAA: false})
 	t.deepEqual(a.length, 2)
@@ -98,6 +106,9 @@ t('from Array of Arrays', function (t) {
 	t.deepEqual(a.getChannelData(1), [0.5,-0.5]);
 	t.deepEqual(a.getChannelData(0), [1,-1]);
 	t.deepEqual(a.getChannelData(2), [-1,0.5]);
+
+	t.notEqual(Array.isArray(a.getChannelData(0)))
+
 	t.end()
 });
 
