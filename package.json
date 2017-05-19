@@ -32,14 +32,13 @@
   },
   "homepage": "https://github.com/audiojs/audio-buffer",
   "dependencies": {
-    "audio-context": "^1.0.0",
-    "buffer-to-arraybuffer": "latest",
+    "audio-context": "^1.0.0"
+  },
+  "devDependencies": {
     "is-audio-buffer": "^1.0.1",
     "is-browser": "^2.0.1",
     "is-buffer": "^1.1.0",
-    "is-plain-obj": "^1.1.0"
-  },
-  "devDependencies": {
+    "is-plain-obj": "^1.1.0",
     "arr-flatten": "^1.0.1",
     "arraybuffer-to-buffer": "^0.0",
     "audio-speaker": "^1.1.3",

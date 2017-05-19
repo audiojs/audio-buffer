@@ -1,60 +1,57 @@
 # audio-buffer [![Build Status](https://travis-ci.org/audiojs/audio-buffer.svg?branch=master)](https://travis-ci.org/audiojs/audio-buffer) [![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)](http://github.com/badges/stability-badges) [![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/audio-buffer.svg)](https://greenkeeper.io/)
 
-[AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) ponyfill. Provides useful constructor for Web-Audio API _AudioBuffer_, if available, otherwise provides optimal _AudioBuffer_ implementation for node/browsers. Useful instead of _Buffer_ in audio streams (see [**@audiojs**](https://github.com/audiojs) components).
+[AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) ponyfill. Provides constructor for Web-Audio API _AudioBuffer_, if available, otherwise provides optimal _AudioBuffer_ implementation for node/browsers. Useful instead of _Buffer_ in audio streams, like [**@audiojs**](https://github.com/audiojs) components.
 
 ## Usage
 
 [![npm install audio-buffer](https://nodei.co/npm/audio-buffer.png?mini=true)](https://npmjs.org/package/audio-buffer/)
 
-```js
-var AudioBuffer = require('audio-buffer')
+### new AudioBuffer(context?, options)
 
-//Create audio buffer from a data source or of a length.
-//Data is interpreted as a planar sequence of float32 samples.
-//It can be Array, TypedArray, ArrayBuffer, Buffer, AudioBuffer, DataView, NDArray etc.
-var buffer = new AudioBuffer(channels = 2, data|length, sampleRate = 44100, options?)
+Create audio buffer for audio `context` based on `options`.
 
-//Duration of the underlying audio data, in seconds
-buffer.duration
+Default `context` is [audio-context](https://npmjs.org/package/audio-context) singleton. `null` context can be used to indicate context-free buffer instance, eg. in nodejs.
 
-//Number of samples per channel
-buffer.length
+* `length` — min length of buffer is 1. If length is 0, then context-less buffer will be created.
+* `duration` — can be used instead of `length`.
+* `sampleRate` — default sample rate is 44100.
+* `numberOfChannels` — default number of channels is 1.
+* `context` — alternatively context can be passed via options.
+* `arrayClass` — array class to use in context-less mode, defaults to _Float32Array_.
 
-//Default sample rate is 44100
-buffer.sampleRate
+### buffer.duration
 
-//Default number of channels is 2
-buffer.numberOfChannels
+Duration of the underlying audio data, in seconds.
 
-//Get array containing the data for the channel (not copied)
-buffer.getChannelData(channel)
+### buffer.length
 
-//Place data from channel to destination Float32Array
-buffer.copyFromChannel(destination, channelNumber, startInChannel = 0)
+Number of samples per channel.
 
-//Place data from source Float32Array to the channel
-buffer.copyToChannel(source, channelNumber, startInChannel = 0)
+### buffer.sampleRate
 
-```
+Default sample rate is 44100.
 
-## Options
+### buffer.numberOfChannels
 
-Options object can be passed as last argument with the following:
+Default number of channels is 1.
 
-* `floatArray` — type of array for data, defaults to _Float32Array_. Note that to use _Float64Array_ in browser you would have to disable WebAudioAPI fallback by passing `isWAA: false`.
-* `context` — custom audio context, default context is [audio-context](https://npmjs.org/package/audio-context) module.
-* `isWAA` — if WebAudioAPI _AudioBuffer_ should be created. Use `false` for emulated buffers - in nodejs that is always false. That can be handy in case if you need to create buffer from subarrays to avoid cloning the data, like so:
+### buffer.getChannelData(channel)
 
-```js
-var a = new AudioBuffer(1, [0, .1, .2, .3], {isWAA: false})
-var b = new AudioBuffer(1, [a.getChannelData(0).subarray(1,2)], {isWAA: false})
-b.getChannelData(0)[0] = .4
-a.getChannelData(0) // [0, .4, .2, .3]
-```
+Get array containing the data for the channel (not copied).
+
+### buffer.copyFromChannel(destination, channelNumber, startInChannel=0)
+
+Place data from channel to destination Float32Array.
+
+### buffer.copyToChannel(source, channelNumber, startInChannel=0)
+
+Place data from source Float32Array to the channel.
+
 
 ## See also
 
-* [audio-buffer-utils](https://github.com/audiojs/audio-buffer-utils) — utils for audio buffers
+* [audio-buffer-list](https://github.com/audiojs/audio-buffer-list) — linked sequence of audio buffers, useful for storing/manipulating large audio data.
+* [audio-buffer-utils](https://github.com/audiojs/audio-buffer-utils) — utils for audio buffers.
 * [pcm-util](https://npmjs.org/package/pcm-util) — utils for audio format convertions.
 
 ## Similar
