@@ -1,11 +1,8 @@
 'use strict';
 
 var AudioBuffer = require('./');
-var assert = require('assert');
 var now = require('performance-now');
-var pcm = require('pcm-util');
-var extend = require('xtend/mutable');
-var ctx = require('audio-context')();
+var getContext = require('audio-context');
 var isBrowser = require('is-browser');
 var t = require('tape')
 
@@ -93,3 +90,15 @@ t('copyFromChannel', function (t) {
 	t.end()
 });
 
+isBrowser && t('instance check', function (t) {
+	var a = new AudioBuffer(getContext())
+
+	t.ok(a instanceof window.AudioBuffer)
+
+	var b = new AudioBuffer()
+	t.ok(b instanceof window.AudioBuffer)
+
+	var c = new AudioBuffer(null)
+	t.notOk(c instanceof window.AudioBuffer)
+	t.ok(c instanceof AudioBuffer)
+})
