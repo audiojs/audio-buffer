@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node test",
-    "test:browser": "budo test",
-    "benchmark": "budo benchmark"
+    "test:browser": "budo test"
   },
   "repository": {
     "type": "git",
@@ -23,7 +22,8 @@
     "ponyfill",
     "audio-buffer",
     "web-audio",
-    "waa"
+    "waa",
+    "data-structures"
   ],
   "author": "Dima Yv <dfcreative@gmail.com>",
   "license": "MIT",
