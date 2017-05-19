@@ -1,7 +1,7 @@
 {
   "name": "audio-buffer",
   "version": "3.2.1",
-  "description": "WebAudioAPI AudioBuffer class for node",
+  "description": "AudioBuffer class for node/browser",
   "main": "index.js",
   "scripts": {
     "test": "node test",
@@ -19,10 +19,11 @@
     "dsp",
     "sound",
     "processing",
-    "ndarray",
     "ndsamples",
+    "ponyfill",
     "audio-buffer",
-    "web-audio"
+    "web-audio",
+    "waa"
   ],
   "author": "Dima Yv <dfcreative@gmail.com>",
   "license": "MIT",
