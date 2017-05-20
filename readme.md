@@ -1,6 +1,6 @@
 # audio-buffer [![Build Status](https://travis-ci.org/audiojs/audio-buffer.svg?branch=master)](https://travis-ci.org/audiojs/audio-buffer) [![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)](http://github.com/badges/stability-badges) [![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/audio-buffer.svg)](https://greenkeeper.io/)
 
-AudioBuffer is basic audio data container. The implementation is compatible with [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer). Provides constructor for Web-Audio API _AudioBuffer_, if available, otherwise provides optimal _AudioBuffer_ implementation for node/browsers. Useful instead of _Buffer_ in audio streams, [**@audiojs**](https://github.com/audiojs) components and other audio applications.
+Basic audio data container. Provides lightweight [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) implementation. Useful instead of _Buffer_ in audio streams, [**@audiojs**](https://github.com/audiojs) components and other audio applications. Can be used as a ponyfill.
 
 ## Usage
 
