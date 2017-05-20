@@ -12,10 +12,12 @@ Create audio buffer for audio `context` based on `options`.
 
 Default `context` is [audio-context](https://npmjs.org/package/audio-context) singleton. `null` context can be used to indicate context-free buffer instance, eg. in nodejs.
 
-* `length` — min length of buffer is 1. If length is 0, then context-less buffer will be created.
-* `duration` — can be used instead of `length`.
+Available options:
+
+* `length` — number of samples.
 * `sampleRate` — default sample rate is 44100.
 * `numberOfChannels` — default number of channels is 1.
+* `duration` — can be used instead of `length`.
 * `context` — alternatively context can be passed via options.
 * `arrayClass` — array class to use in context-less mode, defaults to _Float32Array_.
 
