@@ -58,9 +58,12 @@ function AudioBuffer (context, options) {
 		this.sampleRate = options.sampleRate
 		this.duration = this.length / this.sampleRate
 
+		this.buffer = new options.arrayClass(this.length * this.numberOfChannels)
+
+		//cache channels data as subarrays
 		this.channels = []
 		for (var c = 0; c < this.numberOfChannels; c++) {
-			this.channels.push(new options.arrayClass(this.length))
+			this.channels.push(this.buffer.subarray(c * this.length, (c+1) * this.length ))
 		}
 	}
 }
