@@ -12,8 +12,6 @@ module.exports = AudioBuffer
 
 /**
  * @constructor
- *
- * @param {∀} data Any collection-like object
  */
 function AudioBuffer (context, options) {
 	if (!(this instanceof AudioBuffer)) return new AudioBuffer(context, options);
@@ -28,7 +26,7 @@ function AudioBuffer (context, options) {
 
 	if (context === undefined) context = getContext()
 
-	//detect arguments
+	//detect params
 	if (options.numberOfChannels == null) {
 		options.numberOfChannels = 1
 	}
@@ -53,17 +51,19 @@ function AudioBuffer (context, options) {
 		return context.createBuffer(options.numberOfChannels, options.length, options.sampleRate)
 	}
 	else {
+		//exposed properties
 		this.length = options.length
 		this.numberOfChannels = options.numberOfChannels
 		this.sampleRate = options.sampleRate
 		this.duration = this.length / this.sampleRate
 
-		this.buffer = new options.arrayClass(this.length * this.numberOfChannels)
+		//data is stored as a planar sequence
+		this._data = new options.arrayClass(this.length * this.numberOfChannels)
 
-		//cache channels data as subarrays
-		this.channels = []
+		//channels data is cached as subarrays
+		this._channelsData = []
 		for (var c = 0; c < this.numberOfChannels; c++) {
-			this.channels.push(this.buffer.subarray(c * this.length, (c+1) * this.length ))
+			this._channelsData.push(this._data.subarray(c * this.length, (c+1) * this.length ))
 		}
 	}
 }
@@ -82,10 +82,9 @@ AudioBuffer.prototype.sampleRate = 44100;
  * @return {Array} Array containing the data
  */
 AudioBuffer.prototype.getChannelData = function (channel) {
-	//FIXME: ponder on this, whether we really need that rigorous check, it may affect performance
 	if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
 
-	return this.channels[channel]
+	return this._channelsData[channel]
 };
 
 
@@ -94,7 +93,7 @@ AudioBuffer.prototype.getChannelData = function (channel) {
  */
 AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, startInChannel) {
 	if (startInChannel == null) startInChannel = 0;
-	var data = this.channels[channelNumber]
+	var data = this._channelsData[channelNumber]
 	for (var i = startInChannel, j = 0; i < this.length && j < destination.length; i++, j++) {
 		destination[j] = data[i];
 	}
@@ -103,10 +102,9 @@ AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, st
 
 /**
  * Place data from the source to the channel, starting (in self) from the position
- * Clone of WAAudioBuffer
  */
 AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInChannel) {
-	var data = this.channels[channelNumber]
+	var data = this._channelsData[channelNumber]
 
 	if (!startInChannel) startInChannel = 0;
 
