@@ -14,12 +14,9 @@ Default `context` is [audio-context](https://npmjs.org/package/audio-context) si
 
 Available options:
 
-* `length` — number of samples.
+* `length` — number of samples, minimum is 1.
 * `sampleRate` — default sample rate is 44100.
 * `numberOfChannels` — default number of channels is 1.
-* `duration` — can be used instead of `length`.
-* `context` — alternatively context can be passed via options.
-* `arrayClass` — array class to use in context-less mode, defaults to _Float32Array_.
 
 ### buffer.duration
 
