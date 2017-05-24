@@ -61,9 +61,9 @@ function AudioBuffer (context, options) {
 		this._data = new options.arrayClass(this.length * this.numberOfChannels)
 
 		//channels data is cached as subarrays
-		this._channelsData = []
+		this._channelData = []
 		for (var c = 0; c < this.numberOfChannels; c++) {
-			this._channelsData.push(this._data.subarray(c * this.length, (c+1) * this.length ))
+			this._channelData.push(this._data.subarray(c * this.length, (c+1) * this.length ))
 		}
 	}
 }
@@ -84,7 +84,7 @@ AudioBuffer.prototype.sampleRate = 44100;
 AudioBuffer.prototype.getChannelData = function (channel) {
 	if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
 
-	return this._channelsData[channel]
+	return this._channelData[channel]
 };
 
 
@@ -93,7 +93,7 @@ AudioBuffer.prototype.getChannelData = function (channel) {
  */
 AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, startInChannel) {
 	if (startInChannel == null) startInChannel = 0;
-	var data = this._channelsData[channelNumber]
+	var data = this._channelData[channelNumber]
 	for (var i = startInChannel, j = 0; i < this.length && j < destination.length; i++, j++) {
 		destination[j] = data[i];
 	}
@@ -104,7 +104,7 @@ AudioBuffer.prototype.copyFromChannel = function (destination, channelNumber, st
  * Place data from the source to the channel, starting (in self) from the position
  */
 AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInChannel) {
-	var data = this._channelsData[channelNumber]
+	var data = this._channelData[channelNumber]
 
 	if (!startInChannel) startInChannel = 0;
 
