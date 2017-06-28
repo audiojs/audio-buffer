@@ -41,9 +41,6 @@ function AudioBuffer (context, options) {
 			options.length = 1
 		}
 	}
-	if (!context && !options.arrayClass) {
-		options.arrayClass = Float32Array
-	}
 
 	//if existing context
 	if (context && context.createBuffer) {
@@ -58,7 +55,7 @@ function AudioBuffer (context, options) {
 		this.duration = this.length / this.sampleRate
 
 		//data is stored as a planar sequence
-		this._data = new options.arrayClass(this.length * this.numberOfChannels)
+		this._data = new Float32Array(this.length * this.numberOfChannels)
 
 		//channels data is cached as subarrays
 		this._channelData = []
