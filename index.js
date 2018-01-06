@@ -35,7 +35,7 @@ function AudioBuffer (context, options) {
 	}
 	if (options.length == null) {
 		if (options.duration != null) {
-			options.length = Math.ceil(options.duration * options.sampleRate)
+			options.length = options.duration * options.sampleRate
 		}
 		else {
 			options.length = 1
@@ -45,11 +45,11 @@ function AudioBuffer (context, options) {
 	//if existing context
 	if (context && context.createBuffer) {
 		//create WAA buffer
-		return context.createBuffer(options.numberOfChannels, options.length, options.sampleRate)
+		return context.createBuffer(options.numberOfChannels, Math.ceil(options.length), options.sampleRate)
 	}
 
 	//exposed properties
-	this.length = options.length
+	this.length = Math.ceil(options.length)
 	this.numberOfChannels = options.numberOfChannels
 	this.sampleRate = options.sampleRate
 	this.duration = this.length / this.sampleRate

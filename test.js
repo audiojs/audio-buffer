@@ -40,6 +40,13 @@ t('duration', function (t) {
 	t.end()
 });
 
+t('length', function (t) {
+	var b3 = new AudioBuffer({length: 220.5});
+	t.equal(b3.length, 221)
+
+	t.end()
+});
+
 t('sampleRate', function (t) {
 	var buffer = new AudioBuffer({length: 441});
 	t.equal(buffer.duration, 0.01);
