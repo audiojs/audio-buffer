@@ -47,21 +47,20 @@ function AudioBuffer (context, options) {
 		//create WAA buffer
 		return context.createBuffer(options.numberOfChannels, options.length, options.sampleRate)
 	}
-	else {
-		//exposed properties
-		this.length = options.length
-		this.numberOfChannels = options.numberOfChannels
-		this.sampleRate = options.sampleRate
-		this.duration = this.length / this.sampleRate
 
-		//data is stored as a planar sequence
-		this._data = new Float32Array(this.length * this.numberOfChannels)
+	//exposed properties
+	this.length = options.length
+	this.numberOfChannels = options.numberOfChannels
+	this.sampleRate = options.sampleRate
+	this.duration = this.length / this.sampleRate
 
-		//channels data is cached as subarrays
-		this._channelData = []
-		for (var c = 0; c < this.numberOfChannels; c++) {
-			this._channelData.push(this._data.subarray(c * this.length, (c+1) * this.length ))
-		}
+	//data is stored as a planar sequence
+	this._data = new Float32Array(this.length * this.numberOfChannels)
+
+	//channels data is cached as subarrays
+	this._channelData = []
+	for (var c = 0; c < this.numberOfChannels; c++) {
+		this._channelData.push(this._data.subarray(c * this.length, (c+1) * this.length ))
 	}
 }
 

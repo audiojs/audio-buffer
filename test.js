@@ -34,6 +34,9 @@ t('duration', function (t) {
 	var b2 = new AudioBuffer({duration: .01});
 	t.equal(b2.duration, 0.01)
 
+	var b3 = new AudioBuffer({duration: .005});
+	t.equal(b3.length, 221)
+
 	t.end()
 });
 
