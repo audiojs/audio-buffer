@@ -38,6 +38,6 @@
     "is-audio-buffer": "^1.0.1",
     "is-browser": "^2.0.1",
     "performance-now": "^2.1.0",
-    "tape": "^4.6.3"
+    "tape": "^5.0.0"
   }
 }
