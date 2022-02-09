@@ -1,6 +1,10 @@
 # audio-buffer [![Build Status](https://travis-ci.org/audiojs/audio-buffer.svg?branch=master)](https://travis-ci.org/audiojs/audio-buffer) [![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)](http://github.com/badges/stability-badges) [![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/audio-buffer.svg)](https://greenkeeper.io/)
 
-DEPRECATION NOTICE: since it requires implicitly AudioContext instance, AudioBuffer implementation is bound to web audio API engine. See [web-audio-api](https://github.com/audiojs/web-audio-api).
+**DEPRECATION NOTICE**
+
+Since it requires implicitly _AudioContext_ instance, _AudioBuffer_ implementation is bound to web audio API engine. See [web-audio-api](https://github.com/audiojs/web-audio-api).
+
+---
 
 Basic audio data container. Provides lightweight [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) implementation. Useful instead of _Buffer_ in audio streams, [**@audiojs**](https://github.com/audiojs) components and other audio applications. Can be used as a ponyfill.
 
