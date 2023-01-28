@@ -3,7 +3,7 @@
 _AudioBuffer_ - basic audio data container class.
 Useful instead of _Buffer_ in audio streams, [**@audiojs**](https://github.com/audiojs) components, in webworkers, nodejs, other environments without audio context.
 
-Implementation compatible with [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) and can be used as ponyfill.
+Implementation is compatible with [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer), can be used as ponyfill.
 
 ## Usage
 
