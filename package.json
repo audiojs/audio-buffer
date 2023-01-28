@@ -3,13 +3,13 @@
   "version": "4.0.4",
   "description": "AudioBuffer class for node/browser",
   "main": "index.js",
-  "scripts": {
-    "test": "node test",
-    "test:browser": "budo test"
-  },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/audiojs/audio-buffer"
+  },
+  "scripts": {
+    "test": "node test"
   },
   "keywords": [
     "audio",
@@ -23,21 +23,15 @@
     "audio-buffer",
     "web-audio",
     "waa",
-    "data-structures"
+    "audiodata"
   ],
-  "author": "Dima Yv <dfcreative@gmail.com>",
+  "author": "Dmitry Iv <df.creative@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/audiojs/audio-buffer/issues"
   },
   "homepage": "https://github.com/audiojs/audio-buffer",
-  "dependencies": {
-    "audio-context": "^1.0.0"
-  },
   "devDependencies": {
-    "is-audio-buffer": "^1.0.1",
-    "is-browser": "^2.0.1",
-    "performance-now": "^2.1.0",
-    "tape": "^4.6.3"
+    "tape": "^5.6.3"
   }
 }
