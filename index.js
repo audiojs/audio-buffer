@@ -1,10 +1,15 @@
 /**
  * AudioBuffer class
- *
- * @module audio-buffer/buffer
  */
-
-class AudioBuffer {
+export default class AudioBuffer {
+	/**
+	 * Create AudioBuffer instance.
+	 * @constructor
+	 * @param {Object} options - buffer init options.
+	 * @param {number} options.length - buffer length in samples.
+	 * @param {number} options.sampleRate - buffer sample rate.
+	 * @param {number} options.numberOfChannels - number of channels.
+	 */
 	constructor(options) {
 		if (!options) throw TypeError('options argument is required')
 		if (!options.sampleRate) throw TypeError('options.sampleRate is required')
@@ -28,8 +33,8 @@ class AudioBuffer {
 
 	/**
 	 * Return data associated with the channel.
-	 *
-	 * @return {Array} Array containing the data
+	 * @param {number} channel - Channel index, starting from 0.
+	 * @return {Float32Array} Array containing the data.
 	 */
 	getChannelData (channel) {
 		if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
@@ -39,7 +44,10 @@ class AudioBuffer {
 
 
 	/**
-	 * Place data to the destination buffer, starting from the position
+	 * Place data to the destination buffer, starting from the position.
+	 * @param {Float32Array} destination - Destination array to write data to.
+	 * @param {number} channelNumber - Channel to take data from.
+	 * @param {number} startInChannel - Data offset in channel to read from.
 	 */
 	copyFromChannel (destination, channelNumber, startInChannel) {
 		if (startInChannel == null) startInChannel = 0;
@@ -51,7 +59,10 @@ class AudioBuffer {
 
 
 	/**
-	 * Place data from the source to the channel, starting (in self) from the position
+	 * Place data from the source to the channel, starting (in self) from the position.
+	 * @param {FlatArray | Array} source - source array to read data from.
+	 * @param {number} channelNumber - channel index to copy data to.
+	 * @param {number} startInChannel - offset in channel to copy data to.
 	 */
 	copyToChannel (source, channelNumber, startInChannel) {
 		var data = this._channelData[channelNumber]
@@ -63,5 +74,3 @@ class AudioBuffer {
 		}
 	}
 }
-
-export default AudioBuffer
