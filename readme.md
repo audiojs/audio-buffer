@@ -1,6 +1,6 @@
 # audio-buffer [![test](https://github.com/audiojs/audio-buffer/actions/workflows/node.js.yml/badge.svg)](https://github.com/audiojs/audio-buffer/actions/workflows/node.js.yml) [![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)](http://github.com/badges/stability-badges)
 
-_AudioBuffer_ - basic audio data container class.
+_AudioBuffer_ - basic audio data container class with planar float32 data layout.
 
 Useful instead of _Buffer_ in audio streams, audio components, in webworkers, nodejs, other environments without web-audio-api. Enables audio-buffer-utils outside of browsers.
 
