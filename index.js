@@ -60,7 +60,7 @@ export default class AudioBuffer {
 
 	/**
 	 * Place data from the source to the channel, starting (in self) from the position.
-	 * @param {FlatArray | Array} source - source array to read data from.
+	 * @param {Float32Array | Array} source - source array to read data from.
 	 * @param {number} channelNumber - channel index to copy data to.
 	 * @param {number} startInChannel - offset in channel to copy data to.
 	 */
