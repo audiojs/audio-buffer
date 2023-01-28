@@ -1,6 +1,6 @@
 {
   "name": "audio-buffer",
-  "version": "4.0.4",
+  "version": "5.0.0",
   "description": "AudioBuffer class for node/browser",
   "main": "index.js",
   "type": "module",
