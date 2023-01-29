@@ -15,8 +15,8 @@ Implementation is compatible with [Web Audio API AudioBuffer](https://developer.
 Create audio buffer from `options`.
 
 * `options.length` — number of samples, minimum is 1.
-* `options.sampleRate` — default sample rate is 44100.
-* `options.numberOfChannels` — default number of channels is 1.
+* `options.sampleRate` — sample rate from 3000..768000 range.
+* `options.numberOfChannels` (optional) — default number of channels is 1.
 
 ### buffer.duration
 
