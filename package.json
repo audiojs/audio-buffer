@@ -1,9 +1,10 @@
 {
   "name": "audio-buffer",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "AudioBuffer class for node/browser",
-  "main": "index.js",
   "type": "module",
+  "module": "index.js",
+  "exports": "./index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/audiojs/audio-buffer"
@@ -32,6 +33,6 @@
   },
   "homepage": "https://github.com/audiojs/audio-buffer",
   "devDependencies": {
-    "tape": "^5.6.3"
+    "tst": "^9.2.2"
   }
 }

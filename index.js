@@ -1,76 +1,118 @@
 /**
- * AudioBuffer class
+ * AudioBuffer — spec-compliant audio data container
+ *
+ * Supports both spec constructor forms:
+ *   new AudioBuffer({ length, sampleRate, numberOfChannels })
+ *   new AudioBuffer(numberOfChannels, length, sampleRate)
  */
 export default class AudioBuffer {
-	/**
-	 * Create AudioBuffer instance.
-	 * @constructor
-	 * @param {Object} options - buffer init options.
-	 * @param {number} options.length - buffer length in samples.
-	 * @param {number} options.sampleRate - buffer sample rate.
-	 * @param {number} options.numberOfChannels - number of channels.
-	 */
-	constructor(options) {
+	#sampleRate
+	#length
+	#duration
+	#numberOfChannels
+	#data    // Float32Array — planar storage of all channels
+	#channels // Float32Array[] — subarray views per channel
+
+	get sampleRate() { return this.#sampleRate }
+	get length() { return this.#length }
+	get duration() { return this.#duration }
+	get numberOfChannels() { return this.#numberOfChannels }
+
+	// internal: array of per-channel Float32Array views
+	get _channels() { return this.#channels }
+
+	constructor(options, length, sampleRate) {
+		// positional form: new AudioBuffer(numberOfChannels, length, sampleRate)
+		if (typeof options === 'number')
+			options = { numberOfChannels: options, length, sampleRate }
+
 		if (!options) throw TypeError('options argument is required')
 		if (!options.sampleRate) throw TypeError('options.sampleRate is required')
 		if (options.sampleRate < 3000 || options.sampleRate > 768000) throw TypeError('options.sampleRate must be within 3000..768000')
-		if (!options.length) throw TypeError('options.length must be more than 0')
+		if (!(options.length >= 1)) throw TypeError('options.length must be >= 1')
+		if (options.numberOfChannels != null && !(options.numberOfChannels >= 1))
+			throw TypeError('options.numberOfChannels must be >= 1')
 
-		this.sampleRate = options.sampleRate
-		this.numberOfChannels = options.numberOfChannels || 1
-		this.length = options.length | 0
-		this.duration = this.length / this.sampleRate
+		let nch = options.numberOfChannels || 1
+		let len = Math.trunc(options.length)
 
-		//data is stored as a planar sequence
-		this._data = new Float32Array(this.length * this.numberOfChannels)
+		this.#sampleRate = options.sampleRate
+		this.#numberOfChannels = nch
+		this.#length = len
+		this.#duration = len / options.sampleRate
 
-		//channels data is cached as subarrays
-		this._channelData = []
-		for (let c = 0; c < this.numberOfChannels; c++) {
-			this._channelData.push(this._data.subarray(c * this.length, (c+1) * this.length))
-		}
+		this.#data = new Float32Array(len * nch)
+		let channels = this.#channels = new Array(nch)
+		for (let c = 0; c < nch; c++)
+			channels[c] = this.#data.subarray(c * len, (c + 1) * len)
 	}
 
-	/**
-	 * Return data associated with the channel.
-	 * @param {number} channel - Channel index, starting from 0.
-	 * @return {Float32Array} Array containing the data.
-	 */
-	getChannelData (channel) {
-		if (channel >= this.numberOfChannels || channel < 0 || channel == null) throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.numberOfChannels + ')');
-
-		return this._channelData[channel]
+	getChannelData(channel) {
+		if (!this.#channels[channel])
+			throw Error('Cannot getChannelData: channel number (' + channel + ') exceeds number of channels (' + this.#numberOfChannels + ')')
+		return this.#channels[channel]
 	}
 
-
-	/**
-	 * Place data to the destination buffer, starting from the position.
-	 * @param {Float32Array} destination - Destination array to write data to.
-	 * @param {number} channelNumber - Channel to take data from.
-	 * @param {number} startInChannel - Data offset in channel to read from.
-	 */
-	copyFromChannel (destination, channelNumber, startInChannel) {
-		if (startInChannel == null) startInChannel = 0;
-		var data = this._channelData[channelNumber]
-		for (var i = startInChannel, j = 0; i < this.length && j < destination.length; i++, j++) {
-			destination[j] = data[i];
-		}
+	copyFromChannel(destination, channelNumber, startInChannel = 0) {
+		if (!this.#channels[channelNumber])
+			throw Error('Cannot copyFromChannel: channel number (' + channelNumber + ') exceeds number of channels (' + this.#numberOfChannels + ')')
+		let data = this.#channels[channelNumber]
+		let len = Math.min(destination.length, this.#length - startInChannel)
+		if (len > 0) destination.set(data.subarray(startInChannel, startInChannel + len))
 	}
 
+	copyToChannel(source, channelNumber, startInChannel = 0) {
+		if (!this.#channels[channelNumber])
+			throw Error('Cannot copyToChannel: channel number (' + channelNumber + ') exceeds number of channels (' + this.#numberOfChannels + ')')
+		let data = this.#channels[channelNumber]
+		let len = Math.min(source.length, this.#length - startInChannel)
+		if (len > 0) data.set(source.subarray(0, len), startInChannel)
+	}
 
-	/**
-	 * Place data from the source to the channel, starting (in self) from the position.
-	 * @param {Float32Array | Array} source - source array to read data from.
-	 * @param {number} channelNumber - channel index to copy data to.
-	 * @param {number} startInChannel - offset in channel to copy data to.
-	 */
-	copyToChannel (source, channelNumber, startInChannel) {
-		var data = this._channelData[channelNumber]
+	// --- utility methods ---
 
-		if (!startInChannel) startInChannel = 0;
+	slice(start, end) {
+		let arrays = this.#channels.map(ch => ch.subarray(start, end))
+		return AudioBuffer.fromArray(arrays, this.#sampleRate)
+	}
 
-		for (var i = startInChannel, j = 0; i < this.length && j < source.length; i++, j++) {
-			data[i] = source[j];
+	concat(other) {
+		if (other.sampleRate !== this.#sampleRate)
+			throw Error('AudioBuffers must have same sampleRate')
+		if (other.numberOfChannels !== this.#numberOfChannels)
+			throw Error('AudioBuffers must have same numberOfChannels')
+		let nch = this.#numberOfChannels, aLen = this.#length, bLen = other.length
+		let buf = new AudioBuffer(nch, aLen + bLen, this.#sampleRate)
+		for (let c = 0; c < nch; c++) {
+			let ch = buf.#channels[c]
+			ch.set(this.#channels[c])
+			ch.set(other.getChannelData(c), aLen)
 		}
+		return buf
+	}
+
+	set(other, offset = 0) {
+		if (other.sampleRate !== this.#sampleRate)
+			throw Error('AudioBuffers must have same sampleRate')
+		if (other.numberOfChannels !== this.#numberOfChannels)
+			throw Error('AudioBuffers must have same numberOfChannels')
+		for (let ch = 0; ch < this.#numberOfChannels; ch++)
+			this.#channels[ch].set(other.getChannelData(ch), offset)
+	}
+
+	// --- static factories ---
+
+	static fromArray(arrays, sampleRate) {
+		if (!arrays || !arrays.length) throw TypeError('arrays must be non-empty')
+		let buf = new AudioBuffer(arrays.length, arrays[0].length, sampleRate)
+		for (let ch = 0; ch < arrays.length; ch++)
+			buf.#channels[ch].set(arrays[ch])
+		return buf
+	}
+
+	static filledWithVal(val, numberOfChannels, length, sampleRate) {
+		let buf = new AudioBuffer(numberOfChannels, length, sampleRate)
+		buf.#data.fill(val)
+		return buf
 	}
 }

@@ -1,57 +1,93 @@
 # audio-buffer [![test](https://github.com/audiojs/audio-buffer/actions/workflows/node.js.yml/badge.svg)](https://github.com/audiojs/audio-buffer/actions/workflows/node.js.yml) [![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)](http://github.com/badges/stability-badges)
 
-_AudioBuffer_ - basic audio data container class with planar float32 data layout.
+Audio data container with planar float32 layout.
 
-Useful instead of _Buffer_ in audio streams, audio components, workers, nodejs, environments without web-audio-api. Enables various audio-buffer utils outside of audio contexts or browsers.
+Drop-in for _Buffer_ in audio streams, components, workers, node.js — anywhere without web-audio-api.
 
-Implementation is compatible with [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer), can be used as ponyfill.
+Spec-compatible [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) ponyfill.
 
 ## Usage
 
 [![npm install audio-buffer](https://nodei.co/npm/audio-buffer.png?mini=true)](https://npmjs.org/package/audio-buffer/)
 
-### new AudioBuffer(options)
+```js
+import AudioBuffer from 'audio-buffer'
 
-Create audio buffer from `options`.
+let buf = new AudioBuffer({ length: 1024, sampleRate: 44100, numberOfChannels: 2 })
+buf.getChannelData(0) // Float32Array[1024]
+```
 
-* `options.length` — number of samples, minimum is 1.
-* `options.sampleRate` — sample rate from 3000..768000 range.
-* `options.numberOfChannels` (optional) — default number of channels is 1.
+### Constructor
 
-### buffer.duration
+#### `new AudioBuffer(options)`
 
-Duration of the underlying audio data, in seconds.
+* `options.length` — number of samples per channel (>= 1).
+* `options.sampleRate` — sample rate, 3000..768000.
+* `options.numberOfChannels` — channel count, default 1.
 
-### buffer.length
+#### `new AudioBuffer(numberOfChannels, length, sampleRate)`
+
+Positional form — same parameters as above.
+
+### Properties
+
+#### `buffer.length`
 
 Number of samples per channel.
 
-### buffer.sampleRate
+#### `buffer.sampleRate`
 
-Default sample rate is 44100.
+Sample rate in Hz.
 
-### buffer.numberOfChannels
+#### `buffer.duration`
 
-Default number of channels is 1.
+Duration of the buffer in seconds (`length / sampleRate`).
 
-### buffer.getChannelData(channel)
+#### `buffer.numberOfChannels`
 
-Get array containing the data for the channel (not copied).
+Number of channels.
 
-### buffer.copyFromChannel(destination, channelNumber, startInChannel=0)
+### Spec Methods
 
-Place data from channel to destination Float32Array.
+#### `buffer.getChannelData(channel)`
 
-### buffer.copyToChannel(source, channelNumber, startInChannel=0)
+Returns the `Float32Array` for the given channel (a view, not a copy).
 
-Place data from source Float32Array to the channel.
+#### `buffer.copyFromChannel(destination, channelNumber, startInChannel=0)`
 
+Copies samples from channel into `destination` Float32Array.
+
+#### `buffer.copyToChannel(source, channelNumber, startInChannel=0)`
+
+Copies samples from `source` Float32Array into channel.
+
+### Utility Methods
+
+#### `buffer.slice(start, end)`
+
+Returns a new AudioBuffer with samples from `start` to `end` (subarray semantics).
+
+#### `buffer.concat(other)`
+
+Returns a new AudioBuffer joining `this` and `other`. Both must have same sampleRate and numberOfChannels.
+
+#### `buffer.set(other, offset=0)`
+
+Writes `other` buffer's data into `this` at `offset`. Both must have same sampleRate and numberOfChannels.
+
+### Static Factories
+
+#### `AudioBuffer.fromArray(arrays, sampleRate)`
+
+Creates AudioBuffer from an array of Float32Arrays (one per channel).
+
+#### `AudioBuffer.filledWithVal(val, numberOfChannels, length, sampleRate)`
+
+Creates AudioBuffer with all samples set to `val`.
 
 ## Similar
 
-* [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays. A somewhat alternative approach to wrap audio data, based on ndarrays, used by some modules in [livejs](https://github.com/livejs).
-* [1](https://www.npmjs.com/package/audiobuffer), [2](https://www.npmjs.com/package/audio-buffer), [3](https://github.com/sebpiq/node-web-audio-api/blob/master/lib/AudioBuffer.js), [4](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) — other AudioBuffer implementations.
-* [audiodata](https://www.npmjs.com/package/audiodata) alternative data holder from @mohayonao.
-
+* [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays.
+* [1](https://www.npmjs.com/package/audiobuffer), [2](https://www.npmjs.com/package/audio-buffer), [3](https://github.com/nickclaw/node-web-audio-api), [4](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) — other AudioBuffer implementations.
 
 <p align=center><a href="https://github.com/krishnized/license/">🕉</a></p>
