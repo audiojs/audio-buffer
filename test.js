@@ -307,3 +307,37 @@ test('set > overflow throws RangeError', () => {
 	let b = AudioBuffer.fromArray([new Float32Array([1, 2, 3])], 44100)
 	throws(() => a.set(b, 3))
 })
+
+// --- Symbol.iterator ---
+
+test('Symbol.iterator > iterates channels', () => {
+	let b = AudioBuffer.fromArray([
+		new Float32Array([1, 2]),
+		new Float32Array([3, 4])
+	], 44100)
+	let channels = [...b]
+	is(channels.length, 2)
+	is([...channels[0]], [1, 2])
+	is([...channels[1]], [3, 4])
+})
+
+test('Symbol.iterator > destructuring', () => {
+	let b = AudioBuffer.fromArray([
+		new Float32Array([1, 2]),
+		new Float32Array([3, 4])
+	], 44100)
+	let [left, right] = b
+	is([...left], [1, 2])
+	is([...right], [3, 4])
+})
+
+test('Symbol.iterator > for-of', () => {
+	let b = new AudioBuffer(3, 5, 44100)
+	let count = 0
+	for (let ch of b) {
+		ok(ch instanceof Float32Array)
+		is(ch.length, 5)
+		count++
+	}
+	is(count, 3)
+})
