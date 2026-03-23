@@ -42,7 +42,7 @@ buf.copyFromChannel(dest, 0, 100)               // copy channel 0 from sample 10
 buf.copyToChannel(src, 1)                       // write src into channel 1
 ```
 
-## Operations
+## Utils
 
 ```js
 import { from, slice, concat, set } from 'audio-buffer/util'
