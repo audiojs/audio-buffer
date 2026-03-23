@@ -1,14 +1,11 @@
 # audio-buffer [![test](https://github.com/audiojs/audio-buffer/actions/workflows/node.js.yml/badge.svg)](https://github.com/audiojs/audio-buffer/actions/workflows/node.js.yml) [![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)](http://github.com/badges/stability-badges)
 
-Audio data container with planar float32 layout.
+> Audio data container with planar float32 layout.
 
-[Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer)-spec ponyfill, a drop-in replacement for _Buffer_ in node, bun and other envs for audio processing.
+A drop-in replacement for _Buffer_ in node, bun and other envs for audio processing.<br>
+[Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) spec ponyfill.
 
-Comes with optional utils toolkit:
-
-* `audio-buffer` — the `AudioBuffer` class
-* `audio-buffer/util` — sample operations
-* `audio-buffer/play` — playback helper
+Comes with optional utils.
 
 ```js
 import AudioBuffer from 'audio-buffer'
@@ -18,18 +15,16 @@ let buf = from([0, 0, 0.5, 0.8, 0.3, 0, 0])
 buf = normalize(trim(buf))
 ```
 
-## Constructor
+## API
+
+### Constructor
 
 ```js
 new AudioBuffer({ length: 1024, sampleRate: 44100, numberOfChannels: 2 })
 new AudioBuffer(2, 1024, 44100) // positional form
 ```
 
-* `length` — samples per channel (>= 1)
-* `sampleRate` — 3000..768000
-* `numberOfChannels` — default 1
-
-## Properties
+### Properties
 
 All read-only.
 
@@ -40,7 +35,7 @@ All read-only.
 
 Iterable over channels: `for (let ch of buf)`, `let [L, R] = buf`.
 
-## Methods
+### Methods
 
 ```js
 buf.getChannelData(0)                        // → Float32Array view of channel
@@ -51,7 +46,7 @@ buf.concat(other)                             // → new buffer (same shape requ
 buf.set(other, offset?)                       // write other into this at offset
 ```
 
-## Static
+### Static
 
 ```js
 AudioBuffer.fromArray([left, right], 44100)  // from Float32Array[] per channel
