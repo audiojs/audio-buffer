@@ -1,6 +1,6 @@
 {
   "name": "audio-buffer",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "description": "AudioBuffer ponyfill with operations toolkit",
   "type": "module",
   "module": "index.js",
