@@ -1,5 +1,17 @@
 import AudioBuffer from './index.js'
 
+
+export function isAudioBuffer(buffer) {
+	return buffer != null && (
+		buffer instanceof AudioBuffer || (
+			typeof buffer.length === 'number'
+			&& typeof buffer.sampleRate === 'number'
+			&& typeof buffer.getChannelData === 'function'
+			&& typeof buffer.duration === 'number'
+		)
+	)
+}
+
 // --- from ---
 
 /**

@@ -1,7 +1,24 @@
 import test from 'tst'
 import { is, ok, throws, almost } from 'tst'
 import AudioBuffer from '../index.js'
-import { from, fill, mix, normalize, trim, reverse, equal, noise, remix, pad, invert, rotate, repeat, resize, removeDC } from '../util.js'
+import { from, fill, mix, normalize, trim, reverse, equal, noise, remix, pad, invert, rotate, repeat, resize, removeDC, isAudioBuffer } from '../util.js'
+
+
+test('isAudioBuffer > detects audio buffers', () => {
+	let buf = new AudioBuffer(2, 100, 44100)
+	ok(isAudioBuffer(buf))
+	ok(isAudioBuffer({
+		length: 10,
+		sampleRate: 44100,
+		duration: 10 / 44100,
+		getChannelData: () => new Float32Array(10)
+	}))
+	ok(!isAudioBuffer())
+	ok(!isAudioBuffer(null))
+	ok(!isAudioBuffer({}))
+	ok(!isAudioBuffer(new Float32Array(10)))
+})
+
 
 // --- from ---
 

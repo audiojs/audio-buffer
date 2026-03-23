@@ -22,7 +22,7 @@
     "url": "https://github.com/audiojs/audio-buffer"
   },
   "scripts": {
-    "test": "node --test test/index.js test/ops.js test/play.js"
+    "test": "node --test test/index.js test/util.js test/play.js"
   },
   "keywords": [
     "audio",

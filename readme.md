@@ -57,8 +57,7 @@ AudioBuffer.filledWithVal(0.5, 2, 100, 44100) // pre-filled buffer
 ## Operations
 
 ```js
-import { from, fill, mix, normalize, trim, reverse, equal,
-  noise, remix, pad, invert, rotate, repeat, resize, removeDC } from 'audio-buffer/util'
+import { from, fill, ... } from 'audio-buffer/util'
 ```
 
 Same-size ops mutate and return the buffer. Size-changing ops return a new buffer.
@@ -195,6 +194,14 @@ Remove DC offset (subtract mean per channel).
 
 ```js
 removeDC(buf)                                  // center waveform at zero
+```
+
+#### `isAudioBuffer(buf) → bool`
+
+If object is audio buffer instance or compatible.
+
+```js
+isAudioBuffer(buf)                               // empty buffer, 1024 samples
 ```
 
 ## Play
