@@ -59,7 +59,6 @@ Each op is a pure function: `(buffer, ...args) => buffer`
 5. Wire up subpath exports in package.json
 6. Tests for every op
 7. Update readme
-8. Publish v7.0.0
 
 ## Version
 

@@ -134,6 +134,10 @@ export default class AudioBuffer {
 		return buf
 	}
 
+	static like(buf) {
+		return new AudioBuffer(buf.numberOfChannels, buf.length, buf.sampleRate)
+	}
+
 	static filledWithVal(val, numberOfChannels, length, sampleRate) {
 		let buf = new AudioBuffer(numberOfChannels, length, sampleRate)
 		buf.#data.fill(val)

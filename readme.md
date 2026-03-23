@@ -2,92 +2,230 @@
 
 Audio data container with planar float32 layout.
 
-Drop-in for _Buffer_ in audio streams, components, workers, node.js — anywhere without web-audio-api.
+[Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer)-spec ponyfill, a drop-in replacement for _Buffer_ in node, bun and other envs for audio processing.
 
-Spec-compatible [Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) ponyfill.
+Comes with optional utils toolkit:
 
-## Usage
-
-[![npm install audio-buffer](https://nodei.co/npm/audio-buffer.png?mini=true)](https://npmjs.org/package/audio-buffer/)
+* `audio-buffer` — the `AudioBuffer` class
+* `audio-buffer/util` — sample operations
+* `audio-buffer/play` — playback helper
 
 ```js
 import AudioBuffer from 'audio-buffer'
+import { from, trim, normalize } from 'audio-buffer/util'
 
-let buf = new AudioBuffer({ length: 1024, sampleRate: 44100, numberOfChannels: 2 })
-buf.getChannelData(0) // Float32Array[1024]
+let buf = from([0, 0, 0.5, 0.8, 0.3, 0, 0])
+buf = normalize(trim(buf))
 ```
 
-### Constructor
+## Constructor
 
-#### `new AudioBuffer(options)`
+```js
+new AudioBuffer({ length: 1024, sampleRate: 44100, numberOfChannels: 2 })
+new AudioBuffer(2, 1024, 44100) // positional form
+```
 
-* `options.length` — number of samples per channel (>= 1).
-* `options.sampleRate` — sample rate, 3000..768000.
-* `options.numberOfChannels` — channel count, default 1.
+* `length` — samples per channel (>= 1)
+* `sampleRate` — 3000..768000
+* `numberOfChannels` — default 1
 
-#### `new AudioBuffer(numberOfChannels, length, sampleRate)`
+## Properties
 
-Positional form — same parameters as above.
+All read-only.
 
-### Properties
+* `length` — samples per channel
+* `sampleRate` — Hz
+* `duration` — seconds
+* `numberOfChannels`
 
-#### `buffer.length`
+Iterable over channels: `for (let ch of buf)`, `let [L, R] = buf`.
 
-Number of samples per channel.
+## Methods
 
-#### `buffer.sampleRate`
+```js
+buf.getChannelData(0)                        // → Float32Array view of channel
+buf.copyFromChannel(dest, channel, offset?)   // copy from channel into Float32Array
+buf.copyToChannel(source, channel, offset?)   // copy Float32Array into channel
+buf.slice(start, end)                         // → new buffer (supports negative indices)
+buf.concat(other)                             // → new buffer (same shape required)
+buf.set(other, offset?)                       // write other into this at offset
+```
 
-Sample rate in Hz.
+## Static
 
-#### `buffer.duration`
+```js
+AudioBuffer.fromArray([left, right], 44100)  // from Float32Array[] per channel
+AudioBuffer.like(buf)                         // empty buffer, same shape
+AudioBuffer.filledWithVal(0.5, 2, 100, 44100) // pre-filled buffer
+```
 
-Duration of the buffer in seconds (`length / sampleRate`).
+## Operations
 
-#### `buffer.numberOfChannels`
+```js
+import { from, fill, mix, normalize, trim, reverse, equal,
+  noise, remix, pad, invert, rotate, repeat, resize, removeDC } from 'audio-buffer/util'
+```
 
-Number of channels.
+Same-size ops mutate and return the buffer. Size-changing ops return a new buffer.
 
-### Spec Methods
+#### `from(source, options?) → AudioBuffer`
 
-#### `buffer.getChannelData(channel)`
+Create buffer from anything — number, Float32Array, Array, AudioBuffer, ArrayBuffer.
 
-Returns the `Float32Array` for the given channel (a view, not a copy).
+```js
+from([0.1, -0.3, 0.5])                       // array of samples → mono
+from([left, right], { sampleRate: 48000 })    // Float32Array[] → stereo
+from(existingBuffer)                           // clone
+from(1024)                                     // empty buffer, 1024 samples
+```
 
-#### `buffer.copyFromChannel(destination, channelNumber, startInChannel=0)`
+#### `fill(buffer, value, start?, end?) → buffer`
 
-Copies samples from channel into `destination` Float32Array.
+Fill with constant or per-sample function.
 
-#### `buffer.copyToChannel(source, channelNumber, startInChannel=0)`
+```js
+fill(buf, 0)                                   // silence
+fill(buf, (s, i, ch) => Math.sin(i * 0.1))    // sine wave
+```
 
-Copies samples from `source` Float32Array into channel.
+#### `noise(buffer, start?, end?) → buffer`
 
-### Utility Methods
+White noise (-1..1).
 
-#### `buffer.slice(start, end)`
+```js
+noise(buf)                                     // fill entire buffer
+noise(buf, 100, 200)                           // fill range only
+```
 
-Returns a new AudioBuffer with samples from `start` to `end` (subarray semantics).
+#### `normalize(buffer, start?, end?) → buffer`
 
-#### `buffer.concat(other)`
+Peak-normalize to 1.0, preserving inter-channel balance.
 
-Returns a new AudioBuffer joining `this` and `other`. Both must have same sampleRate and numberOfChannels.
+```js
+normalize(buf)                                 // quiet recording → full scale
+```
 
-#### `buffer.set(other, offset=0)`
+#### `trim(buffer, threshold?) → newBuffer`
 
-Writes `other` buffer's data into `this` at `offset`. Both must have same sampleRate and numberOfChannels.
+Remove silence from both ends.
 
-### Static Factories
+```js
+trim(buf)                                      // remove exact zeros
+trim(buf, 0.01)                                // remove near-silence
+```
 
-#### `AudioBuffer.fromArray(arrays, sampleRate)`
+#### `reverse(buffer, start?, end?) → buffer`
 
-Creates AudioBuffer from an array of Float32Arrays (one per channel).
+Reverse samples.
 
-#### `AudioBuffer.filledWithVal(val, numberOfChannels, length, sampleRate)`
+```js
+reverse(buf)                                   // full reverse
+reverse(buf, 0, 100)                           // reverse first 100 samples
+```
 
-Creates AudioBuffer with all samples set to `val`.
+#### `invert(buffer, start?, end?) → buffer`
 
-## Similar
+Phase-invert (negate samples).
 
-* [ndsamples](https://github.com/livejs/ndsamples) — audio-wrapper for ndarrays.
-* [1](https://www.npmjs.com/package/audiobuffer), [2](https://www.npmjs.com/package/audio-buffer), [3](https://github.com/nickclaw/node-web-audio-api), [4](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) — other AudioBuffer implementations.
+```js
+invert(buf)                                    // flip polarity
+```
+
+#### `mix(a, b, ratio?, offset?) → a`
+
+Blend `b` into `a`. Ratio 0 = keep `a`, 1 = replace with `b`.
+
+```js
+mix(track, reverb, 0.3)                        // 70% dry, 30% wet
+mix(a, b, (sa, sb) => Math.max(sa, sb))       // custom blend function
+mix(a, b, 0.5, 1000)                           // mix starting at sample 1000
+```
+
+#### `equal(a, b) → boolean`
+
+Deep equality — same shape, same samples.
+
+```js
+equal(buf, clone)                              // true if identical
+```
+
+#### `remix(buffer, channels, interpretation?) → newBuffer`
+
+Upmix/downmix channels per [Web Audio spec](https://www.w3.org/TR/webaudio/#channel-up-mixing-and-down-mixing) speaker rules.
+
+```js
+remix(stereo, 1)                               // stereo → mono
+remix(mono, 2)                                 // mono → stereo
+remix(buf, 6)                                  // → 5.1 surround
+remix(buf, 4, 'discrete')                      // copy channels, silence rest
+```
+
+#### `pad(buffer, length, value?, side?) → newBuffer`
+
+Pad to target length.
+
+```js
+pad(buf, 44100)                                // zero-pad to 1 second
+pad(buf, 44100, 0, 'start')                    // pad at start
+```
+
+#### `resize(buffer, length) → newBuffer`
+
+Truncate or zero-pad to exact length.
+
+```js
+resize(buf, 512)                               // force to 512 samples
+```
+
+#### `repeat(buffer, times) → newBuffer`
+
+Repeat N times.
+
+```js
+repeat(buf, 4)                                 // loop 4x
+```
+
+#### `rotate(buffer, offset) → buffer`
+
+Circular shift. Positive = right.
+
+```js
+rotate(buf, 100)                               // shift right 100 samples
+rotate(buf, -50)                               // shift left 50
+```
+
+#### `removeDC(buffer, start?, end?) → buffer`
+
+Remove DC offset (subtract mean per channel).
+
+```js
+removeDC(buf)                                  // center waveform at zero
+```
+
+## Play
+
+```js
+import play from 'audio-buffer/play'
+
+let ctrl = await play(buf, { volume: 0.8, loop: true })
+ctrl.pause()
+ctrl.play()
+ctrl.stop()
+ctrl.currentTime  // seconds
+ctrl.playing      // boolean
+```
+
+Options: `{ volume, loop, start, end, autoplay, onended }`.
+
+Uses Web Audio API in browsers. In Node.js, install [audio-speaker](https://github.com/audiojs/audio-speaker): `npm i audio-speaker`.
+
+`stop()` resets to start. `play()` restarts from beginning.
+
+## Replaces
+
+* [audio-buffer-utils](https://github.com/audiojs/audio-buffer-utils)
+* [audio-buffer-from](https://github.com/audiojs/audio-buffer-from)
+* [audio-buffer-remix](https://github.com/audiojs/audio-buffer-remix)
+* [audio-play](https://github.com/audiojs/audio-play)
 
 <p align=center><a href="https://github.com/krishnized/license/">🕉</a></p>

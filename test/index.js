@@ -1,6 +1,6 @@
 import test from 'tst'
 import { is, ok, throws, almost } from 'tst'
-import AudioBuffer from './index.js'
+import AudioBuffer from '../index.js'
 
 // --- constructor ---
 
@@ -340,4 +340,23 @@ test('Symbol.iterator > for-of', () => {
 		count++
 	}
 	is(count, 3)
+})
+
+// --- static like ---
+
+test('like > creates empty buffer with same shape', () => {
+	let src = new AudioBuffer(2, 100, 48000)
+	let dst = AudioBuffer.like(src)
+	is(dst.numberOfChannels, 2)
+	is(dst.length, 100)
+	is(dst.sampleRate, 48000)
+	is(dst.getChannelData(0)[0], 0)
+})
+
+test('like > independent from source', () => {
+	let src = AudioBuffer.fromArray([new Float32Array([1, 2, 3])], 44100)
+	let dst = AudioBuffer.like(src)
+	is(dst.getChannelData(0)[0], 0)
+	dst.getChannelData(0)[0] = 99
+	is(src.getChannelData(0)[0], 1)
 })

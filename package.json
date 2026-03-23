@@ -1,16 +1,28 @@
 {
   "name": "audio-buffer",
   "version": "6.0.1",
-  "description": "AudioBuffer class for node/browser",
+  "description": "AudioBuffer ponyfill with operations toolkit",
   "type": "module",
   "module": "index.js",
-  "exports": "./index.js",
+  "sideEffects": false,
+  "files": [
+    "index.js",
+    "util.js",
+    "play.js",
+    "readme.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./util": "./util.js",
+    "./play": "./play.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/audiojs/audio-buffer"
   },
   "scripts": {
-    "test": "node test"
+    "test": "node --test test/index.js test/ops.js test/play.js"
   },
   "keywords": [
     "audio",
@@ -19,12 +31,16 @@
     "dsp",
     "sound",
     "processing",
-    "ndsamples",
     "ponyfill",
     "audio-buffer",
     "web-audio",
     "waa",
-    "audiodata"
+    "audiodata",
+    "normalize",
+    "trim",
+    "reverse",
+    "mix",
+    "remix"
   ],
   "author": "Dmitry Iv <df.creative@gmail.com>",
   "license": "MIT",
