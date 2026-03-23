@@ -1,7 +1,7 @@
 import test from 'tst'
 import { is, ok, throws, almost } from 'tst'
 import AudioBuffer from '../index.js'
-import { from, slice, concat, set, like, fill, mix, normalize, trim, reverse, isEqual, remix, pad, rotate, repeat, resize, removeDC, isAudioBuffer } from '../util.js'
+import { from, slice, concat, set, fill, mix, normalize, trim, reverse, isEqual, remix, pad, rotate, repeat, removeDC, isAudioBuffer } from '../util.js'
 
 
 test('isAudioBuffer > detects audio buffers', () => {
@@ -110,6 +110,53 @@ test('from > rejects empty array', () => {
 
 test('from > rejects unsupported type', () => {
 	throws(() => from('hello'))
+})
+
+test('from > mapFn generates samples', () => {
+	let b = from(4, (s, i) => i * 0.25)
+	is(b.length, 4)
+	almost(b.getChannelData(0)[0], 0, 1e-6)
+	almost(b.getChannelData(0)[1], 0.25, 1e-6)
+	almost(b.getChannelData(0)[2], 0.5, 1e-6)
+	almost(b.getChannelData(0)[3], 0.75, 1e-6)
+})
+
+test('from > mapFn transforms source', () => {
+	let b = from([1, 2, 3], v => v * 0.5)
+	almost(b.getChannelData(0)[0], 0.5, 1e-6)
+	almost(b.getChannelData(0)[1], 1, 1e-6)
+	almost(b.getChannelData(0)[2], 1.5, 1e-6)
+})
+
+test('from > mapFn with options', () => {
+	let b = from(3, (s, i) => i, { sampleRate: 48000 })
+	is(b.sampleRate, 48000)
+	almost(b.getChannelData(0)[1], 1, 1e-6)
+})
+
+test('from > mapFn multichannel', () => {
+	let b = from([new Float32Array([1, 2]), new Float32Array([3, 4])], (s) => s * 2)
+	almost(b.getChannelData(0)[0], 2, 1e-6)
+	almost(b.getChannelData(1)[1], 8, 1e-6)
+})
+
+test('from > number fill value', () => {
+	let b = from(4, 0.5)
+	is(b.length, 4)
+	is([...b.getChannelData(0)], [0.5, 0.5, 0.5, 0.5])
+})
+
+test('from > number fill value with options', () => {
+	let b = from(3, 1, { sampleRate: 48000, numberOfChannels: 2 })
+	is(b.sampleRate, 48000)
+	is(b.numberOfChannels, 2)
+	is([...b.getChannelData(0)], [1, 1, 1])
+	is([...b.getChannelData(1)], [1, 1, 1])
+})
+
+test('from > fill 0 is no-op (same as default)', () => {
+	let b = from(3, 0)
+	is([...b.getChannelData(0)], [0, 0, 0])
 })
 
 // --- fill ---
@@ -503,38 +550,6 @@ test('repeat > rejects times < 1', () => {
 	throws(() => repeat(b, -1))
 })
 
-// --- resize ---
-
-test('resize > truncate', () => {
-	let b = from([new Float32Array([1, 2, 3, 4, 5])])
-	let r = resize(b, 3)
-	is(r.length, 3)
-	is([...r.getChannelData(0)], [1, 2, 3])
-})
-
-test('resize > extend zero-pads', () => {
-	let b = from([new Float32Array([1, 2])])
-	let r = resize(b, 5)
-	is(r.length, 5)
-	is([...r.getChannelData(0)], [1, 2, 0, 0, 0])
-})
-
-test('resize > same length returns same buffer', () => {
-	let b = new AudioBuffer(1, 5, 44100)
-	is(resize(b, 5), b)
-})
-
-test('resize > multichannel', () => {
-	let b = from([
-		new Float32Array([1, 2, 3]),
-		new Float32Array([4, 5, 6])
-	])
-	let r = resize(b, 2)
-	is(r.numberOfChannels, 2)
-	is([...r.getChannelData(0)], [1, 2])
-	is([...r.getChannelData(1)], [4, 5])
-})
-
 // --- remove-dc ---
 
 test('removeDC > removes DC offset', () => {
@@ -796,20 +811,20 @@ test('set > overflow throws RangeError', () => {
 	throws(() => set(a, b, 3))
 })
 
-// --- like ---
+// --- from(buf, 0) as like ---
 
-test('like > creates empty buffer with same shape', () => {
+test('from(buf, 0) > creates empty buffer with same shape', () => {
 	let src = new AudioBuffer(2, 100, 48000)
-	let dst = like(src)
+	let dst = from(src, 0)
 	is(dst.numberOfChannels, 2)
 	is(dst.length, 100)
 	is(dst.sampleRate, 48000)
 	is(dst.getChannelData(0)[0], 0)
 })
 
-test('like > independent from source', () => {
+test('from(buf, 0) > independent from source', () => {
 	let src = from([new Float32Array([1, 2, 3])])
-	let dst = like(src)
+	let dst = from(src, 0)
 	is(dst.getChannelData(0)[0], 0)
 	dst.getChannelData(0)[0] = 99
 	is(src.getChannelData(0)[0], 1)

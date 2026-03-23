@@ -12,12 +12,6 @@ export function isAudioBuffer(buffer) {
 	)
 }
 
-// --- like ---
-
-export function like(buf) {
-	return new AudioBuffer(buf.numberOfChannels, buf.length, buf.sampleRate)
-}
-
 // --- slice ---
 
 export function slice(buffer, start, end) {
@@ -65,60 +59,65 @@ export function set(buffer, other, offset = 0) {
 
 /**
  * Create AudioBuffer from various source types.
+ * Accepts optional fill value/mapFn as second arg (like Array.from).
  *
  * @param {number|Float32Array|Array|AudioBuffer|ArrayBuffer} source
- * @param {{ sampleRate?, numberOfChannels? }} options
+ * @param {number|Function|{ sampleRate?, numberOfChannels? }} optOrFn
+ * @param {{ sampleRate?, numberOfChannels? }} optIfFn
  * @returns {AudioBuffer}
  */
-export function from(source, options = {}) {
+export function from(source, optOrFn, optIfFn) {
+	let filler
+	if (typeof optOrFn === 'function' || typeof optOrFn === 'number') { filler = optOrFn; optOrFn = optIfFn }
+	let options = optOrFn || {}
 	let sr = options.sampleRate || 44100
 	let nch = options.numberOfChannels
+	let copy = typeof filler !== 'number' // skip data copy when filling with constant
+	let buf
 
 	if (source == null)
 		throw new TypeError('source must not be null or undefined')
 
 	if (typeof source === 'number')
-		return new AudioBuffer(nch || 1, source, sr)
+		buf = new AudioBuffer(nch || 1, source, sr)
 
 	// AudioBuffer (duck-typed) → clone
-	if (source.getChannelData && source.numberOfChannels != null) {
+	else if (source.getChannelData && source.numberOfChannels != null) {
 		let n = source.numberOfChannels
-		let buf = new AudioBuffer(n, source.length, options.sampleRate || source.sampleRate)
-		for (let c = 0; c < n; c++) buf.getChannelData(c).set(source.getChannelData(c))
-		return buf
+		buf = new AudioBuffer(n, source.length, options.sampleRate || source.sampleRate)
+		if (copy) for (let c = 0; c < n; c++) buf.getChannelData(c).set(source.getChannelData(c))
 	}
 
 	// Float32Array / TypedArray → single channel
-	if (ArrayBuffer.isView(source)) {
-		let buf = new AudioBuffer(1, source.length, sr)
-		buf.getChannelData(0).set(source)
-		return buf
+	else if (ArrayBuffer.isView(source)) {
+		buf = new AudioBuffer(1, source.length, sr)
+		if (copy) buf.getChannelData(0).set(source)
 	}
 
 	// ArrayBuffer → interpret as float32, split into channels
-	if (source instanceof ArrayBuffer) {
+	else if (source instanceof ArrayBuffer) {
 		let data = new Float32Array(source)
 		nch = nch || 1
 		let len = Math.floor(data.length / nch)
-		let buf = new AudioBuffer(nch, len, sr)
-		for (let c = 0; c < nch; c++)
+		buf = new AudioBuffer(nch, len, sr)
+		if (copy) for (let c = 0; c < nch; c++)
 			buf.getChannelData(c).set(data.subarray(c * len, (c + 1) * len))
-		return buf
 	}
 
-	if (Array.isArray(source)) {
+	else if (Array.isArray(source)) {
 		if (!source.length) throw new TypeError('source array must be non-empty')
 		if (Array.isArray(source[0]) || ArrayBuffer.isView(source[0])) {
-			let buf = new AudioBuffer(source.length, source[0].length, sr)
-			for (let c = 0; c < source.length; c++) buf.getChannelData(c).set(source[c])
-			return buf
+			buf = new AudioBuffer(source.length, source[0].length, sr)
+			if (copy) for (let c = 0; c < source.length; c++) buf.getChannelData(c).set(source[c])
+		} else {
+			buf = new AudioBuffer(1, source.length, sr)
+			if (copy) buf.getChannelData(0).set(source)
 		}
-		let buf = new AudioBuffer(1, source.length, sr)
-		buf.getChannelData(0).set(source)
-		return buf
 	}
 
-	throw new TypeError('Unsupported source type')
+	else throw new TypeError('Unsupported source type')
+
+	return filler != null ? fill(buf, filler) : buf
 }
 
 // --- fill ---
@@ -417,25 +416,6 @@ export function repeat(buffer, times) {
 		let src = buffer.getChannelData(c), dst = buf.getChannelData(c)
 		for (let t = 0; t < times; t++) dst.set(src, t * buffer.length)
 	}
-	return buf
-}
-
-// --- resize ---
-
-/**
- * Resize buffer to new length. Truncates or zero-pads.
- * Returns new buffer (or same if length matches).
- *
- * @param {AudioBuffer} buffer
- * @param {number} length
- * @returns {AudioBuffer}
- */
-export function resize(buffer, length) {
-	if (length === buffer.length) return buffer
-	let buf = new AudioBuffer(buffer.numberOfChannels, length, buffer.sampleRate)
-	let copy = Math.min(length, buffer.length)
-	for (let c = 0; c < buffer.numberOfChannels; c++)
-		buf.getChannelData(c).set(buffer.getChannelData(c).subarray(0, copy))
 	return buf
 }
 

@@ -58,23 +58,18 @@ Check if object is an AudioBuffer instance or duck-typed compatible.
 isAudioBuffer(buf)                               // true
 ```
 
-#### `from(source, options?) → AudioBuffer`
+#### `from(source, fill?, options?) → AudioBuffer`
 
-Create buffer from anything — number, Float32Array, Array, AudioBuffer, ArrayBuffer.
+Create buffer from anything — number, Float32Array, Array, AudioBuffer, ArrayBuffer. Optional second arg fills samples — a number for constant value, or `fn(sample, index, channel, channelData)` to map (like `Array.from`).
 
 ```js
 from([0.1, -0.3, 0.5])                       // array of samples → mono
-from([left, right], { sampleRate: 48000 })    // Float32Array[] → stereo
-from(existingBuffer)                           // clone
-from(1024)                                     // empty buffer, 1024 samples
-```
-
-#### `like(buffer) → AudioBuffer`
-
-Empty buffer with same shape (channels, length, sampleRate).
-
-```js
-like(buf)                                      // same dimensions, zeroed
+from([left, right], { sampleRate: 48000 })   // Float32Array[] → stereo
+from(existingBuffer)                         // clone
+from(1024, 0.5)                              // 1024 samples buffer filled with 0.5
+from(1024, (s, i) => Math.sin(i * 0.1))      // generate sine wave
+from(buf, v => v * 0.5)                      // clone with half volume
+from(buf, 0)                                 // same shape, zeroed (like)
 ```
 
 #### `slice(buffer, start?, end?) → newBuffer`
@@ -109,8 +104,8 @@ Fill with constant or per-sample function.
 
 ```js
 fill(buf, 0)                                   // silence
-fill(buf, (s, i, ch) => Math.sin(i * 0.1))    // sine wave
-fill(buf, () => Math.random() * 2 - 1)        // white noise
+fill(buf, (s, i, ch) => Math.sin(i * 0.1))     // sine wave
+fill(buf, () => Math.random() * 2 - 1)         // white noise
 fill(buf, v => -v)                             // phase-invert
 ```
 
@@ -168,14 +163,6 @@ Pad to target length.
 ```js
 pad(buf, 44100)                                // zero-pad to 1 second
 pad(buf, 44100, 0, 'start')                    // pad at start
-```
-
-#### `resize(buffer, length) → newBuffer`
-
-Truncate or zero-pad to exact length.
-
-```js
-resize(buf, 512)                               // force to 512 samples
 ```
 
 #### `repeat(buffer, times) → newBuffer`
