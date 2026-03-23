@@ -154,7 +154,8 @@ test('copyFromChannel > throws on invalid channel', () => {
 })
 
 test('copyFromChannel > startInChannel clips output', () => {
-	let b = AudioBuffer.fromArray([new Float32Array([1, 2, 3, 4])], 44100)
+	let b = new AudioBuffer(1, 4, 44100)
+	b.getChannelData(0).set(new Float32Array([1, 2, 3, 4]))
 	let dst = new Float32Array(10)
 	b.copyFromChannel(dst, 0, 2)
 	is([...dst], [3, 4, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -169,152 +170,12 @@ test('_channels > returns array of channel views', () => {
 	is(b._channels[0].length, 10)
 })
 
-// --- static fromArray ---
-
-test('fromArray > creates buffer from channel arrays', () => {
-	let b = AudioBuffer.fromArray([
-		new Float32Array([1, 2, 3]),
-		new Float32Array([4, 5, 6])
-	], 44100)
-	is(b.numberOfChannels, 2)
-	is(b.length, 3)
-	is(b.getChannelData(0)[0], 1)
-	is(b.getChannelData(1)[2], 6)
-})
-
-test('fromArray > rejects empty/invalid input', () => {
-	throws(() => AudioBuffer.fromArray([], 44100))
-	throws(() => AudioBuffer.fromArray(null, 44100))
-	throws(() => AudioBuffer.fromArray(undefined, 44100))
-})
-
-// --- static filledWithVal ---
-
-test('filledWithVal > fills all channels', () => {
-	let b = AudioBuffer.filledWithVal(0.7, 2, 50, 44100)
-	is(b.numberOfChannels, 2)
-	is(b.length, 50)
-	for (let ch = 0; ch < 2; ch++)
-		for (let i = 0; i < 50; i++)
-			almost(b.getChannelData(ch)[i], 0.7, 1e-6)
-})
-
-test('filledWithVal > zero fill', () => {
-	let b = AudioBuffer.filledWithVal(0, 1, 10, 44100)
-	is([...b.getChannelData(0)], Array(10).fill(0))
-})
-
-// --- slice ---
-
-test('slice > returns new buffer', () => {
-	let b = AudioBuffer.fromArray([new Float32Array([1, 2, 3, 4, 5])], 44100)
-	let s = b.slice(1, 3)
-	is(s.length, 2)
-	is(s.getChannelData(0)[0], 2)
-	is(s.getChannelData(0)[1], 3)
-	is(s.sampleRate, 44100)
-})
-
-test('slice > returns independent copy', () => {
-	let b = AudioBuffer.fromArray([new Float32Array([1, 2, 3])], 44100)
-	let s = b.slice(0, 2)
-	s.getChannelData(0)[0] = 99
-	is(b.getChannelData(0)[0], 1)
-})
-
-test('slice > multichannel', () => {
-	let b = AudioBuffer.fromArray([
-		new Float32Array([1, 2, 3]),
-		new Float32Array([4, 5, 6])
-	], 44100)
-	let s = b.slice(1, 3)
-	is(s.numberOfChannels, 2)
-	is([...s.getChannelData(0)], [2, 3])
-	is([...s.getChannelData(1)], [5, 6])
-})
-
-test('slice > negative index', () => {
-	let b = AudioBuffer.fromArray([new Float32Array([1, 2, 3, 4, 5])], 44100)
-	let s = b.slice(-2)
-	is(s.length, 2)
-	is([...s.getChannelData(0)], [4, 5])
-})
-
-// --- concat ---
-
-test('concat > joins buffers', () => {
-	let a = AudioBuffer.fromArray([new Float32Array([1, 2])], 44100)
-	let b = AudioBuffer.fromArray([new Float32Array([3, 4])], 44100)
-	let c = a.concat(b)
-	is(c.length, 4)
-	is([...c.getChannelData(0)], [1, 2, 3, 4])
-})
-
-test('concat > multichannel', () => {
-	let a = AudioBuffer.fromArray([new Float32Array([1]), new Float32Array([2])], 44100)
-	let b = AudioBuffer.fromArray([new Float32Array([3]), new Float32Array([4])], 44100)
-	let c = a.concat(b)
-	is(c.numberOfChannels, 2)
-	is([...c.getChannelData(0)], [1, 3])
-	is([...c.getChannelData(1)], [2, 4])
-})
-
-test('concat > rejects mismatched sampleRate', () => {
-	let a = new AudioBuffer(1, 10, 44100)
-	let b = new AudioBuffer(1, 10, 22050)
-	throws(() => a.concat(b))
-})
-
-test('concat > rejects mismatched numberOfChannels', () => {
-	let a = new AudioBuffer(1, 10, 44100)
-	let b = new AudioBuffer(2, 10, 44100)
-	throws(() => a.concat(b))
-})
-
-// --- set ---
-
-test('set > writes data at offset', () => {
-	let a = new AudioBuffer(1, 10, 44100)
-	let b = AudioBuffer.fromArray([new Float32Array([0.5, 0.6])], 44100)
-	a.set(b, 3)
-	almost(a.getChannelData(0)[3], 0.5, 1e-6)
-	almost(a.getChannelData(0)[4], 0.6, 1e-6)
-	is(a.getChannelData(0)[0], 0)
-	is(a.getChannelData(0)[5], 0)
-})
-
-test('set > writes at offset 0 by default', () => {
-	let a = new AudioBuffer(1, 4, 44100)
-	let b = AudioBuffer.fromArray([new Float32Array([1, 2])], 44100)
-	a.set(b)
-	is([...a.getChannelData(0)], [1, 2, 0, 0])
-})
-
-test('set > rejects mismatched sampleRate', () => {
-	let a = new AudioBuffer(1, 10, 44100)
-	let b = new AudioBuffer(1, 5, 22050)
-	throws(() => a.set(b))
-})
-
-test('set > rejects mismatched numberOfChannels', () => {
-	let a = new AudioBuffer(2, 10, 44100)
-	let b = new AudioBuffer(1, 5, 44100)
-	throws(() => a.set(b))
-})
-
-test('set > overflow throws RangeError', () => {
-	let a = new AudioBuffer(1, 4, 44100)
-	let b = AudioBuffer.fromArray([new Float32Array([1, 2, 3])], 44100)
-	throws(() => a.set(b, 3))
-})
-
 // --- Symbol.iterator ---
 
 test('Symbol.iterator > iterates channels', () => {
-	let b = AudioBuffer.fromArray([
-		new Float32Array([1, 2]),
-		new Float32Array([3, 4])
-	], 44100)
+	let b = new AudioBuffer(2, 2, 44100)
+	b.getChannelData(0).set([1, 2])
+	b.getChannelData(1).set([3, 4])
 	let channels = [...b]
 	is(channels.length, 2)
 	is([...channels[0]], [1, 2])
@@ -322,10 +183,9 @@ test('Symbol.iterator > iterates channels', () => {
 })
 
 test('Symbol.iterator > destructuring', () => {
-	let b = AudioBuffer.fromArray([
-		new Float32Array([1, 2]),
-		new Float32Array([3, 4])
-	], 44100)
+	let b = new AudioBuffer(2, 2, 44100)
+	b.getChannelData(0).set([1, 2])
+	b.getChannelData(1).set([3, 4])
 	let [left, right] = b
 	is([...left], [1, 2])
 	is([...right], [3, 4])
@@ -340,23 +200,4 @@ test('Symbol.iterator > for-of', () => {
 		count++
 	}
 	is(count, 3)
-})
-
-// --- static like ---
-
-test('like > creates empty buffer with same shape', () => {
-	let src = new AudioBuffer(2, 100, 48000)
-	let dst = AudioBuffer.like(src)
-	is(dst.numberOfChannels, 2)
-	is(dst.length, 100)
-	is(dst.sampleRate, 48000)
-	is(dst.getChannelData(0)[0], 0)
-})
-
-test('like > independent from source', () => {
-	let src = AudioBuffer.fromArray([new Float32Array([1, 2, 3])], 44100)
-	let dst = AudioBuffer.like(src)
-	is(dst.getChannelData(0)[0], 0)
-	dst.getChannelData(0)[0] = 99
-	is(src.getChannelData(0)[0], 1)
 })

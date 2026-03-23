@@ -2,8 +2,7 @@
 
 > Audio data container with planar float32 layout.
 
-A drop-in replacement for _Buffer_ in node, bun and other envs for audio processing.<br>
-[Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) spec ponyfill.
+[Web Audio API AudioBuffer](https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer) ponyfill for node, bun and other envs.
 
 Comes with optional utils.
 
@@ -38,26 +37,15 @@ Iterable over channels: `for (let ch of buf)`, `let [L, R] = buf`.
 ### Methods
 
 ```js
-buf.getChannelData(0)                        // → Float32Array view of channel
-buf.copyFromChannel(dest, channel, offset?)   // copy from channel into Float32Array
-buf.copyToChannel(source, channel, offset?)   // copy Float32Array into channel
-buf.slice(start, end)                         // → new buffer (supports negative indices)
-buf.concat(other)                             // → new buffer (same shape required)
-buf.set(other, offset?)                       // write other into this at offset
-```
-
-### Static
-
-```js
-AudioBuffer.fromArray([left, right], 44100)  // from Float32Array[] per channel
-AudioBuffer.like(buf)                         // empty buffer, same shape
-AudioBuffer.filledWithVal(0.5, 2, 100, 44100) // pre-filled buffer
+buf.getChannelData(0)                           // Float32Array for channel 0
+buf.copyFromChannel(dest, 0, 100)               // copy channel 0 from sample 100 into dest
+buf.copyToChannel(src, 1)                       // write src into channel 1
 ```
 
 ## Operations
 
 ```js
-import { from, fill, ... } from 'audio-buffer/util'
+import { from, slice, concat, set, ... } from 'audio-buffer/util'
 ```
 
 Same-size ops mutate and return the buffer. Size-changing ops return a new buffer.
@@ -71,6 +59,39 @@ from([0.1, -0.3, 0.5])                       // array of samples → mono
 from([left, right], { sampleRate: 48000 })    // Float32Array[] → stereo
 from(existingBuffer)                           // clone
 from(1024)                                     // empty buffer, 1024 samples
+```
+
+#### `like(buffer) → AudioBuffer`
+
+Empty buffer with same shape (channels, length, sampleRate).
+
+```js
+like(buf)                                      // same dimensions, zeroed
+```
+
+#### `slice(buffer, start?, end?) → newBuffer`
+
+Extract sample range into new buffer.
+
+```js
+slice(buf, 100, 200)                           // samples 100–199
+slice(buf, -50)                                // last 50 samples
+```
+
+#### `concat(a, b) → newBuffer`
+
+Join two buffers (same sampleRate and channels).
+
+```js
+concat(a, b)                                   // a + b end-to-end
+```
+
+#### `set(buffer, other, offset?) → buffer`
+
+Overwrite samples from another buffer.
+
+```js
+set(buf, patch, 1000)                          // write patch at sample 1000
 ```
 
 #### `fill(buffer, value, start?, end?) → buffer`
@@ -135,14 +156,6 @@ mix(a, b, (sa, sb) => Math.max(sa, sb))       // custom blend function
 mix(a, b, 0.5, 1000)                           // mix starting at sample 1000
 ```
 
-#### `equal(a, b) → boolean`
-
-Deep equality — same shape, same samples.
-
-```js
-equal(buf, clone)                              // true if identical
-```
-
 #### `remix(buffer, channels, interpretation?) → newBuffer`
 
 Upmix/downmix channels per [Web Audio spec](https://www.w3.org/TR/webaudio/#channel-up-mixing-and-down-mixing) speaker rules.
@@ -196,12 +209,20 @@ Remove DC offset (subtract mean per channel).
 removeDC(buf)                                  // center waveform at zero
 ```
 
-#### `isAudioBuffer(buf) → bool`
+#### `isEqual(a, b) → boolean`
 
-If object is audio buffer instance or compatible.
+Deep equality — same shape, same samples.
 
 ```js
-isAudioBuffer(buf)                               // empty buffer, 1024 samples
+isEqual(buf, clone)                            // true if identical
+```
+
+#### `isAudioBuffer(buf) → boolean`
+
+Check if object is an AudioBuffer instance or duck-typed compatible.
+
+```js
+isAudioBuffer(buf)                               // true
 ```
 
 ## Play

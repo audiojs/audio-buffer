@@ -12,6 +12,53 @@ export function isAudioBuffer(buffer) {
 	)
 }
 
+// --- like ---
+
+export function like(buf) {
+	return new AudioBuffer(buf.numberOfChannels, buf.length, buf.sampleRate)
+}
+
+// --- slice ---
+
+export function slice(buffer, start, end) {
+	let nch = buffer.numberOfChannels, sr = buffer.sampleRate
+	let sub = buffer.getChannelData(0).subarray(start, end)
+	let buf = new AudioBuffer(nch, sub.length, sr)
+	buf.getChannelData(0).set(sub)
+	for (let c = 1; c < nch; c++)
+		buf.getChannelData(c).set(buffer.getChannelData(c).subarray(start, end))
+	return buf
+}
+
+// --- concat ---
+
+export function concat(a, b) {
+	if (b.sampleRate !== a.sampleRate)
+		throw Error('AudioBuffers must have same sampleRate')
+	if (b.numberOfChannels !== a.numberOfChannels)
+		throw Error('AudioBuffers must have same numberOfChannels')
+	let nch = a.numberOfChannels, aLen = a.length, bLen = b.length
+	let buf = new AudioBuffer(nch, aLen + bLen, a.sampleRate)
+	for (let c = 0; c < nch; c++) {
+		let ch = buf.getChannelData(c)
+		ch.set(a.getChannelData(c))
+		ch.set(b.getChannelData(c), aLen)
+	}
+	return buf
+}
+
+// --- set ---
+
+export function set(buffer, other, offset = 0) {
+	if (other.sampleRate !== buffer.sampleRate)
+		throw Error('AudioBuffers must have same sampleRate')
+	if (other.numberOfChannels !== buffer.numberOfChannels)
+		throw Error('AudioBuffers must have same numberOfChannels')
+	for (let c = 0; c < buffer.numberOfChannels; c++)
+		buffer.getChannelData(c).set(other.getChannelData(c), offset)
+	return buffer
+}
+
 // --- from ---
 
 /**
@@ -34,15 +81,16 @@ export function from(source, options = {}) {
 	// AudioBuffer (duck-typed) → clone
 	if (source.getChannelData && source.numberOfChannels != null) {
 		let n = source.numberOfChannels
-		let arrays = new Array(n)
-		for (let c = 0; c < n; c++) arrays[c] = new Float32Array(source.getChannelData(c))
-		return AudioBuffer.fromArray(arrays, options.sampleRate || source.sampleRate)
+		let buf = new AudioBuffer(n, source.length, options.sampleRate || source.sampleRate)
+		for (let c = 0; c < n; c++) buf.getChannelData(c).set(source.getChannelData(c))
+		return buf
 	}
 
 	// Float32Array / TypedArray → single channel
 	if (ArrayBuffer.isView(source)) {
-		let data = source instanceof Float32Array ? new Float32Array(source) : new Float32Array(source)
-		return AudioBuffer.fromArray([data], sr)
+		let buf = new AudioBuffer(1, source.length, sr)
+		buf.getChannelData(0).set(new Float32Array(source))
+		return buf
 	}
 
 	// ArrayBuffer → interpret as float32, split into channels
@@ -50,19 +98,22 @@ export function from(source, options = {}) {
 		let data = new Float32Array(source)
 		nch = nch || 1
 		let len = Math.floor(data.length / nch)
-		let arrays = new Array(nch)
+		let buf = new AudioBuffer(nch, len, sr)
 		for (let c = 0; c < nch; c++)
-			arrays[c] = data.slice(c * len, (c + 1) * len)
-		return AudioBuffer.fromArray(arrays, sr)
+			buf.getChannelData(c).set(data.subarray(c * len, (c + 1) * len))
+		return buf
 	}
 
 	if (Array.isArray(source)) {
 		if (!source.length) throw new TypeError('source array must be non-empty')
 		if (Array.isArray(source[0]) || ArrayBuffer.isView(source[0])) {
-			let arrays = source.map(ch => new Float32Array(ch))
-			return AudioBuffer.fromArray(arrays, sr)
+			let buf = new AudioBuffer(source.length, source[0].length, sr)
+			for (let c = 0; c < source.length; c++) buf.getChannelData(c).set(new Float32Array(source[c]))
+			return buf
 		}
-		return AudioBuffer.fromArray([new Float32Array(source)], sr)
+		let buf = new AudioBuffer(1, source.length, sr)
+		buf.getChannelData(0).set(new Float32Array(source))
+		return buf
 	}
 
 	throw new TypeError('Unsupported source type')
@@ -175,9 +226,9 @@ export function trim(buffer, threshold = 0) {
 			if ((ch[i] < 0 ? -ch[i] : ch[i]) > threshold) { end = i + 1; break }
 	}
 
-	if (start >= end) return new AudioBuffer(nch, 1, buffer.sampleRate)
-
-	return buffer.slice(start, end)
+	return start >= end
+		? new AudioBuffer(nch, 1, buffer.sampleRate)
+		: slice(buffer, start, end)
 }
 
 // --- reverse ---
@@ -204,7 +255,7 @@ export function reverse(buffer, start, end) {
 	return buffer
 }
 
-// --- equal ---
+// --- isEqual ---
 
 /**
  * Deep equality test — same dimensions, same sample values.
@@ -213,7 +264,7 @@ export function reverse(buffer, start, end) {
  * @param {AudioBuffer} b
  * @returns {boolean}
  */
-export function equal(a, b) {
+export function isEqual(a, b) {
 	if (a === b) return true
 	if (a.numberOfChannels !== b.numberOfChannels) return false
 	if (a.length !== b.length) return false
@@ -389,7 +440,7 @@ function rev(arr, lo, hi) {
  */
 export function repeat(buffer, times) {
 	if (times < 1) throw new RangeError('times must be >= 1')
-	if (times === 1) return buffer.slice()
+	if (times === 1) return from(buffer)
 	let buf = new AudioBuffer(buffer.numberOfChannels, buffer.length * times, buffer.sampleRate)
 	for (let c = 0; c < buffer.numberOfChannels; c++) {
 		let src = buffer.getChannelData(c), dst = buf.getChannelData(c)
