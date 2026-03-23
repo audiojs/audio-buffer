@@ -32,19 +32,21 @@ export function slice(buffer, start, end) {
 
 // --- concat ---
 
-export function concat(a, b) {
-	if (b.sampleRate !== a.sampleRate)
-		throw Error('AudioBuffers must have same sampleRate')
-	if (b.numberOfChannels !== a.numberOfChannels)
-		throw Error('AudioBuffers must have same numberOfChannels')
-	let nch = a.numberOfChannels, aLen = a.length, bLen = b.length
-	let buf = new AudioBuffer(nch, aLen + bLen, a.sampleRate)
-	for (let c = 0; c < nch; c++) {
-		let ch = buf.getChannelData(c)
-		ch.set(a.getChannelData(c))
-		ch.set(b.getChannelData(c), aLen)
+export function concat(...buffers) {
+	if (buffers.length < 2) throw new TypeError('concat requires at least 2 buffers')
+	let nch = buffers[0].numberOfChannels, sr = buffers[0].sampleRate
+	let totalLen = 0
+	for (let buf of buffers) {
+		if (buf.sampleRate !== sr) throw Error('AudioBuffers must have same sampleRate')
+		if (buf.numberOfChannels !== nch) throw Error('AudioBuffers must have same numberOfChannels')
+		totalLen += buf.length
 	}
-	return buf
+	let out = new AudioBuffer(nch, totalLen, sr)
+	for (let c = 0; c < nch; c++) {
+		let ch = out.getChannelData(c), off = 0
+		for (let buf of buffers) { ch.set(buf.getChannelData(c), off); off += buf.length }
+	}
+	return out
 }
 
 // --- set ---
@@ -65,15 +67,15 @@ export function set(buffer, other, offset = 0) {
  * Create AudioBuffer from various source types.
  *
  * @param {number|Float32Array|Array|AudioBuffer|ArrayBuffer} source
- * @param {{ sampleRate?, numberOfChannels?, channels? }} options
+ * @param {{ sampleRate?, numberOfChannels? }} options
  * @returns {AudioBuffer}
  */
 export function from(source, options = {}) {
 	let sr = options.sampleRate || 44100
-	let nch = options.numberOfChannels || options.channels
+	let nch = options.numberOfChannels
 
 	if (source == null)
-		return new AudioBuffer(nch || 1, 1, sr)
+		throw new TypeError('source must not be null or undefined')
 
 	if (typeof source === 'number')
 		return new AudioBuffer(nch || 1, source, sr)
@@ -89,7 +91,7 @@ export function from(source, options = {}) {
 	// Float32Array / TypedArray → single channel
 	if (ArrayBuffer.isView(source)) {
 		let buf = new AudioBuffer(1, source.length, sr)
-		buf.getChannelData(0).set(new Float32Array(source))
+		buf.getChannelData(0).set(source)
 		return buf
 	}
 
@@ -108,11 +110,11 @@ export function from(source, options = {}) {
 		if (!source.length) throw new TypeError('source array must be non-empty')
 		if (Array.isArray(source[0]) || ArrayBuffer.isView(source[0])) {
 			let buf = new AudioBuffer(source.length, source[0].length, sr)
-			for (let c = 0; c < source.length; c++) buf.getChannelData(c).set(new Float32Array(source[c]))
+			for (let c = 0; c < source.length; c++) buf.getChannelData(c).set(source[c])
 			return buf
 		}
 		let buf = new AudioBuffer(1, source.length, sr)
-		buf.getChannelData(0).set(new Float32Array(source))
+		buf.getChannelData(0).set(source)
 		return buf
 	}
 
@@ -158,6 +160,7 @@ export function fill(buffer, value, start = 0, end = buffer.length) {
  */
 export function mix(a, b, ratio = 0.5, offset = 0) {
 	if (offset < 0) offset += a.length
+	if (offset < 0 || offset >= a.length) throw new RangeError('offset out of bounds')
 	let nch = Math.min(a.numberOfChannels, b.numberOfChannels)
 	let fn = typeof ratio === 'function'
 	let inv = fn ? 0 : 1 - ratio
@@ -245,7 +248,7 @@ export function reverse(buffer, start, end) {
 	if (start == null && end == null) {
 		for (let ch of buffer) ch.reverse()
 	} else {
-		let s = start || 0, e = end ?? buffer.length
+		let s = start ?? 0, e = end ?? buffer.length
 		for (let c = 0; c < buffer.numberOfChannels; c++) {
 			let ch = buffer.getChannelData(c)
 			let lo = s, hi = e - 1
@@ -276,22 +279,6 @@ export function isEqual(a, b) {
 			if (ach[i] !== bch[i]) return false
 	}
 	return true
-}
-
-// --- noise ---
-
-/**
- * Fill buffer with white noise (random values in -1..1).
- *
- * @param {AudioBuffer} buffer
- * @param {number} start
- * @param {number} end
- * @returns {AudioBuffer}
- */
-export function noise(buffer, start = 0, end = buffer.length) {
-	for (let ch of buffer)
-		for (let i = start; i < end; i++) ch[i] = Math.random() * 2 - 1
-	return buffer
 }
 
 // --- remix ---
@@ -385,22 +372,6 @@ export function pad(buffer, length, value = 0, side = 'end') {
 	for (let c = 0; c < buffer.numberOfChannels; c++)
 		buf.getChannelData(c).set(buffer.getChannelData(c), offset)
 	return buf
-}
-
-// --- invert ---
-
-/**
- * Phase-invert buffer (negate all samples) in-place.
- *
- * @param {AudioBuffer} buffer
- * @param {number} start
- * @param {number} end
- * @returns {AudioBuffer}
- */
-export function invert(buffer, start = 0, end = buffer.length) {
-	for (let ch of buffer)
-		for (let i = start; i < end; i++) ch[i] = -ch[i]
-	return buffer
 }
 
 // --- rotate ---

@@ -45,10 +45,18 @@ buf.copyToChannel(src, 1)                       // write src into channel 1
 ## Operations
 
 ```js
-import { from, slice, concat, set, ... } from 'audio-buffer/util'
+import { from, slice, concat, set } from 'audio-buffer/util'
 ```
 
 Same-size ops mutate and return the buffer. Size-changing ops return a new buffer.
+
+#### `isAudioBuffer(buf) → boolean`
+
+Check if object is an AudioBuffer instance or duck-typed compatible.
+
+```js
+isAudioBuffer(buf)                               // true
+```
 
 #### `from(source, options?) → AudioBuffer`
 
@@ -78,12 +86,13 @@ slice(buf, 100, 200)                           // samples 100–199
 slice(buf, -50)                                // last 50 samples
 ```
 
-#### `concat(a, b) → newBuffer`
+#### `concat(...buffers) → newBuffer`
 
-Join two buffers (same sampleRate and channels).
+Join buffers (same sampleRate and channels).
 
 ```js
 concat(a, b)                                   // a + b end-to-end
+concat(a, b, c, d)                             // join many
 ```
 
 #### `set(buffer, other, offset?) → buffer`
@@ -101,15 +110,8 @@ Fill with constant or per-sample function.
 ```js
 fill(buf, 0)                                   // silence
 fill(buf, (s, i, ch) => Math.sin(i * 0.1))    // sine wave
-```
-
-#### `noise(buffer, start?, end?) → buffer`
-
-White noise (-1..1).
-
-```js
-noise(buf)                                     // fill entire buffer
-noise(buf, 100, 200)                           // fill range only
+fill(buf, () => Math.random() * 2 - 1)        // white noise
+fill(buf, v => -v)                             // phase-invert
 ```
 
 #### `normalize(buffer, start?, end?) → buffer`
@@ -136,14 +138,6 @@ Reverse samples.
 ```js
 reverse(buf)                                   // full reverse
 reverse(buf, 0, 100)                           // reverse first 100 samples
-```
-
-#### `invert(buffer, start?, end?) → buffer`
-
-Phase-invert (negate samples).
-
-```js
-invert(buf)                                    // flip polarity
 ```
 
 #### `mix(a, b, ratio?, offset?) → a`
@@ -215,14 +209,6 @@ Deep equality — same shape, same samples.
 
 ```js
 isEqual(buf, clone)                            // true if identical
-```
-
-#### `isAudioBuffer(buf) → boolean`
-
-Check if object is an AudioBuffer instance or duck-typed compatible.
-
-```js
-isAudioBuffer(buf)                               // true
 ```
 
 ## Play

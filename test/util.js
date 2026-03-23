@@ -1,7 +1,7 @@
 import test from 'tst'
 import { is, ok, throws, almost } from 'tst'
 import AudioBuffer from '../index.js'
-import { from, slice, concat, set, like, fill, mix, normalize, trim, reverse, isEqual, noise, remix, pad, invert, rotate, repeat, resize, removeDC, isAudioBuffer } from '../util.js'
+import { from, slice, concat, set, like, fill, mix, normalize, trim, reverse, isEqual, remix, pad, rotate, repeat, resize, removeDC, isAudioBuffer } from '../util.js'
 
 
 test('isAudioBuffer > detects audio buffers', () => {
@@ -36,10 +36,9 @@ test('from > number with options', () => {
 	is(b.sampleRate, 48000)
 })
 
-test('from > null creates 1-sample buffer', () => {
-	let b = from(null)
-	is(b.length, 1)
-	is(b.numberOfChannels, 1)
+test('from > null throws', () => {
+	throws(() => from(null))
+	throws(() => from(undefined))
 })
 
 test('from > Float32Array as single channel', () => {
@@ -383,75 +382,6 @@ test('isEqual > multichannel', () => {
 	ok(isEqual(a, b))
 	b.getChannelData(1)[0] = 3
 	ok(!isEqual(a, b))
-})
-
-// --- noise ---
-
-test('noise > fills with values in -1..1', () => {
-	let b = new AudioBuffer(1, 100, 44100)
-	noise(b)
-	let ch = b.getChannelData(0)
-	let hasNonZero = false
-	for (let i = 0; i < ch.length; i++) {
-		ok(ch[i] >= -1 && ch[i] <= 1)
-		if (ch[i] !== 0) hasNonZero = true
-	}
-	ok(hasNonZero)
-})
-
-test('noise > with range', () => {
-	let b = new AudioBuffer(1, 10, 44100)
-	noise(b, 3, 7)
-	is(b.getChannelData(0)[0], 0)
-	is(b.getChannelData(0)[9], 0)
-	let ch = b.getChannelData(0)
-	let noiseSum = 0
-	for (let i = 3; i < 7; i++) noiseSum += Math.abs(ch[i])
-	ok(noiseSum > 0)
-})
-
-test('noise > multichannel', () => {
-	let b = new AudioBuffer(2, 50, 44100)
-	noise(b)
-	let ch0 = b.getChannelData(0), ch1 = b.getChannelData(1)
-	let same = true
-	for (let i = 0; i < 50; i++) if (ch0[i] !== ch1[i]) { same = false; break }
-	ok(!same)
-})
-
-test('noise > returns buffer', () => {
-	let b = new AudioBuffer(1, 2, 44100)
-	is(noise(b), b)
-})
-
-// --- invert ---
-
-test('invert > negates all samples', () => {
-	let b = from([new Float32Array([0.5, -0.3, 0, 1])])
-	invert(b)
-	almost(b.getChannelData(0)[0], -0.5, 1e-6)
-	almost(b.getChannelData(0)[1], 0.3, 1e-6)
-	almost(b.getChannelData(0)[2], 0, 1e-6)
-	almost(b.getChannelData(0)[3], -1, 1e-6)
-})
-
-test('invert > with range', () => {
-	let b = from([new Float32Array([1, 1, 1, 1])])
-	invert(b, 1, 3)
-	is([...b.getChannelData(0)], [1, -1, -1, 1])
-})
-
-test('invert > double invert restores original', () => {
-	let b = from([new Float32Array([0.1, -0.7, 0.5])])
-	invert(b)
-	invert(b)
-	almost(b.getChannelData(0)[0], 0.1, 1e-6)
-	almost(b.getChannelData(0)[1], -0.7, 1e-6)
-})
-
-test('invert > returns buffer', () => {
-	let b = new AudioBuffer(1, 2, 44100)
-	is(invert(b), b)
 })
 
 // --- rotate ---
@@ -806,6 +736,15 @@ test('concat > multichannel', () => {
 	is(c.numberOfChannels, 2)
 	is([...c.getChannelData(0)], [1, 3])
 	is([...c.getChannelData(1)], [2, 4])
+})
+
+test('concat > variadic joins multiple buffers', () => {
+	let a = from([new Float32Array([1])])
+	let b = from([new Float32Array([2])])
+	let c = from([new Float32Array([3])])
+	let d = concat(a, b, c)
+	is(d.length, 3)
+	is([...d.getChannelData(0)], [1, 2, 3])
 })
 
 test('concat > rejects mismatched sampleRate', () => {
