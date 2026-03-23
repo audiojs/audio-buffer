@@ -70,6 +70,7 @@ from(1024, 0.5)                              // 1024 samples buffer filled with 
 from(1024, (s, i) => Math.sin(i * 0.1))      // generate sine wave
 from(buf, v => v * 0.5)                      // clone with half volume
 from(buf, 0)                                 // same shape, zeroed (like)
+from({ length: 1024, numberOfChannels: 2 })  // from options
 ```
 
 #### `slice(buffer, start?, end?) → newBuffer`

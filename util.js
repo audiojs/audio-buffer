@@ -115,6 +115,10 @@ export function from(source, optOrFn, optIfFn) {
 		}
 	}
 
+	// Options object → create from shape
+	else if (typeof source === 'object' && source.length != null)
+		buf = new AudioBuffer(source.numberOfChannels || nch || 1, source.length, source.sampleRate || sr)
+
 	else throw new TypeError('Unsupported source type')
 
 	return filler != null ? fill(buf, filler) : buf
