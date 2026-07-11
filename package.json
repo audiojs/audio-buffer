@@ -1,6 +1,6 @@
 {
   "name": "audio-buffer",
-  "version": "7.3.1",
+  "version": "7.3.2",
   "description": "AudioBuffer ponyfill with operations toolkit",
   "type": "module",
   "module": "index.js",
@@ -50,5 +50,6 @@
   "homepage": "https://github.com/audiojs/audio-buffer",
   "devDependencies": {
     "tst": "^9.2.2"
-  }
+  },
+  "funding": "https://github.com/sponsors/audiojs"
 }
